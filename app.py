@@ -581,8 +581,9 @@ motivation = [
     "Success is the final destination on your journey of excellence."
 ]
 
+# --- THE AUTOMATION FUNCTION ---
 def run_daily_automation(word, sentence, quote):
-    # Part A: GitHub Update (Runs every time page is loaded)
+    # Part A: GitHub Update
     try:
         url = f"https://api.github.com/repos/{REPO_NAME}/contents/{FILE_PATH}"
         headers = {"Authorization": f"token {GITHUB_TOKEN}"}
@@ -596,10 +597,9 @@ def run_daily_automation(word, sentence, quote):
     except:
         pass
 
-    # Part B: Notifications (The Scheduled Version)
+    # Part B: Notifications
     topic = "leanders_daily_bars"
     
-    # This checks the Belgium hour we defined at the top
     if current_hour == 0:        # Midnight
         title = "Midnight Bars Unlocked 🔓"
         notif_msg = f"New Word: {word.upper()}\n{sentence}"
@@ -607,7 +607,6 @@ def run_daily_automation(word, sentence, quote):
         title = "Morning Grind ☕"
         notif_msg = quote
     else:
-        # If it's not 0 or 10, STOP here and don't send anything
         return 
 
     try:
@@ -615,6 +614,18 @@ def run_daily_automation(word, sentence, quote):
         requests.post(ntfy_url, 
                       data=notif_msg.encode('utf-8'), 
                       headers={"Title": title, "Priority": "high"})
-        st.toast(f"Scheduled Push Sent: {title}")
+        st.toast(f"Push Sent: {title}")
     except:
         pass
+
+# --- THE ACTUAL TRIGGER ---
+# This must be all the way to the left (no spaces)
+run_daily_automation(daily_word['word'], daily_sentence, daily_quote)
+
+# --- THE UI ---
+# These must also be all the way to the left
+st.title(f"🎤 {daily_word['word'].upper()}")
+st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
+st.divider()
+st.info(f"📝 {daily_sentence}")
+st.warning(f"🔥 {daily_quote}")
