@@ -607,13 +607,14 @@ def run_daily_automation(word, sentence, quote):
     if current_hour == 0:        # Midnight
         title = "Midnight Bars Unlocked 🔓"
         notif_msg = f"New Word: {word.upper()}\n{sentence}"
-    elif current_hour == 22:     # TEST FOR 10 PM
-        title = "System Test ✅"
-        notif_msg = "It works!"
-    elif current_hour == 23:     # TEST FOR 11 PM (Use this if it's past 11!)
+    elif current_hour == 23:     # TEST FOR 11 PM (It is 23:xx now!)
         title = "Late Night Test ✅"
-        notif_msg = "The clock is perfect."
+        notif_msg = f"Word: {word.upper()}\n{quote}"
+    elif current_hour == 10:     # Morning
+        title = "10 AM Morning Grind ☕"
+        notif_msg = quote
     else:
+        # If it's not one of these times, don't send anything
         return 
 
     try:
@@ -627,6 +628,9 @@ def run_daily_automation(word, sentence, quote):
 # --- THE ACTUAL TRIGGER ---
 run_daily_automation(daily_word['word'], daily_sentence, daily_quote)
 
-# --- THE UI ---
+# --- THE UI (This fixes your missing rhymes/motivation) ---
 st.title(f"🎤 {daily_word['word'].upper()}")
-st.info(daily_sentence)
+st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
+st.divider()
+st.info(f"📝 {daily_sentence}")
+st.warning(f"🔥 {daily_quote}")
