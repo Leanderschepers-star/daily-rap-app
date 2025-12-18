@@ -602,20 +602,20 @@ def run_daily_automation(word, sentence, quote):
         pass
 
     # Part B: Notifications
+   # Part B: Notifications
     topic = "leanders_daily_bars"
     
     if current_hour == 0:        # Midnight
         title = "Midnight Bars Unlocked 🔓"
         notif_msg = f"New Word: {word.upper()}\n{sentence}"
-    elif current_hour == 23:     # TEST FOR 11 PM (It is 23:xx now!)
+    elif current_hour == 23:     # <--- THIS IS YOUR CURRENT HOUR
         title = "Late Night Test ✅"
         notif_msg = f"Word: {word.upper()}\n{quote}"
-    elif current_hour == 10:     # Morning
+    elif current_hour == 10:     # 10 AM
         title = "10 AM Morning Grind ☕"
         notif_msg = quote
     else:
-        # If it's not one of these times, don't send anything
-        return 
+        return
 
     try:
         requests.post(f"https://ntfy.sh/{topic}", 
@@ -634,3 +634,4 @@ st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
 st.divider()
 st.info(f"📝 {daily_sentence}")
 st.warning(f"🔥 {daily_quote}")
+
