@@ -1,2 +1,3 @@
 WORD: REVENGE
-Buried the past but the ghost keeps digging it up.
+Sentence: Buried the past but the ghost keeps digging it up.
+Motivation: Focus on the output, not the applause.
