@@ -602,19 +602,20 @@ def run_daily_automation(word, sentence, quote):
     except:
         pass
 
-    # Part B: Notifications (The simplest possible version)
+    # Part B: Notifications
     topic = "leanders_daily_bars"
-    
     try:
-        requests.post(f"https://ntfy.sh/{topic}", 
+        # We use a simple URL here to avoid the &quot; glitch
+        ntfy_url = "https://ntfy.sh/" + topic
+        requests.post(ntfy_url, 
             data=f"Word: {word.upper()}\n{quote}".encode('utf-8'),
             headers={
                 "Title": "Daily Rap Test ✅",
                 "Priority": "high"
             })
-        st.toast("SIGNAL SENT!") # This should appear above 'Manage App'
+        st.toast("SIGNAL SENT!") 
     except Exception as e:
-        st.error(f"Error sending: {e}")
+        st.error(f"Error: {e}")
 
 # --- THE ACTUAL TRIGGER ---
 run_daily_automation(daily_word['word'], daily_sentence, daily_quote)
@@ -625,4 +626,3 @@ st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
 st.divider()
 st.info(f"📝 {daily_sentence}")
 st.warning(f"🔥 {daily_quote}")
-
