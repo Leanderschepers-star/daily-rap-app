@@ -95,7 +95,7 @@ motivation = [
 
 # --- SEED LOGIC ---
 today = datetime.date.today()
-random.seed(today.toordinal())
+random.seed(datetime.datetime.now().microsecond)
 
 daily_word = random.choice(words)
 daily_sentence = random.choice(sentences)
@@ -140,3 +140,4 @@ st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
 st.divider()
 st.info(f"📝 {daily_sentence}")
 st.warning(f"🔥 {daily_quote}")
+
