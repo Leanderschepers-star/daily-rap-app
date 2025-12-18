@@ -1,0 +1,16 @@
+name: Trigger Daily Notifications
+
+on:
+  schedule:
+    # 23:00 UTC = 00:00 Belgium
+    # 09:00 UTC = 10:00 Belgium
+    # 20:00 UTC = 21:00 Belgium
+    - cron: '0 23,9,20 * * *'
+  workflow_dispatch: # This adds the "Run workflow" button
+
+jobs:
+  ping_app:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wake up the App
+        run: curl -I https://daily-rap-app.streamlit.app
