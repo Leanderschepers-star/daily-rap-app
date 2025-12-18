@@ -625,8 +625,39 @@ def run_daily_automation(word, sentence, quote):
     except:
         pass
 
-# --- THE ACTUAL TRIGGER ---
-run_daily_automation(daily_word['word'], daily_sentence, daily_quote)
+# --- THE AUTOMATION FUNCTION ---
+def run_daily_automation(word, sentence, quote):
+    # Part A: GitHub Update
+    url = f"https://api.github.com/repos/{REPO_NAME}/contents/{FILE_PATH}"
+    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    try:
+        r = requests.get(url, headers=headers)
+        if r.status_code == 200:
+            sha = r.json()['sha']
+            content = f"WORD: {word.upper()}\nSentence: {sentence}\nMotivation: {quote}"
+            encoded = base64.b64encode(content.encode()).decode()
+            data = {"message": "Daily Update", "content": encoded, "sha": sha}
+            requests.put(url, json=data, headers=headers)
+    except:
+        pass
+
+    # Part B: Notifications (FORCE SEND - NO TIME FILTER)
+    topic = "leanders_daily_bars"
+    title = "FORCE TEST ✅"
+    notif_msg = f"Word: {word.upper()}\n{quote}"
+
+    try:
+        resp = requests.post(f"https://ntfy.sh/{topic}", 
+            data=notif_msg.encode('utf-8'),
+            headers={"Title": title, "Priority": "high"})
+        
+        # This will show a small message on your website screen
+        if resp.status_code == 200:
+            st.toast("SIGNAL SENT TO NTFY!")
+        else:
+            st.error(f"ntfy error: {resp.status_code}")
+    except Exception as e:
+        st.error(f"Error: {e}")
 
 # --- THE UI (This fixes your missing rhymes/motivation) ---
 st.title(f"🎤 {daily_word['word'].upper()}")
@@ -634,4 +665,5 @@ st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
 st.divider()
 st.info(f"📝 {daily_sentence}")
 st.warning(f"🔥 {daily_quote}")
+
 
