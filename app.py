@@ -619,9 +619,6 @@ if current_hour == 0:        # Midnight
     elif current_hour == 21:     # 9 PM
         title = "9 PM Night Session 🎤"
         notif_msg = f"Daily Bar: {sentence}\n\n🔥 {quote}"
-    elif current_hour == 22:     # <--- ADD THIS TEST LINE
-        title = "System Test ✅"
-        notif_msg = "The logic is working!"
     else:
         return
     # --- TEST MODE ---
@@ -642,6 +639,7 @@ st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
 st.divider()
 st.info(f"📝 {daily_sentence}")
 st.warning(f"🔥 {daily_quote}")
+
 
 
 
