@@ -83,4 +83,54 @@ sentences = [
 ]
 
 motivation = [
-    "Amateurs
+    "Amateurs wait for inspiration. Pros get to work.",
+    "Your first draft is allowed to be bad. Just finish it.",
+    "Consistency beats talent every single time.",
+    "The booth is your therapist. Be honest with the mic.",
+    "A page a day is a book a year. Don't stop.",
+    "Your future self is counting on you right now.",
+    "Focus on the output, not the applause.",
+    "Don't stop when you're tired; stop when you're done."
+]
+
+# --- PICK DATA ---
+daily_word = random.choice(words)
+daily_sentence = random.choice(sentences)
+daily_quote = random.choice(motivation)
+
+# --- GITHUB UPDATE & NOTIFICATION ---
+def sync_and_notify(word, sentence, motivation_text):
+    # 1. Update GitHub
+    url = f"https://api.github.com/repos/{REPO_NAME}/contents/{FILE_PATH}"
+    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    r = requests.get(url, headers=headers)
+    
+    if r.status_code == 200:
+        sha = r.json()['sha']
+        formatted_text = f"WORD: {word.upper()}\nSentence: {sentence}\nMotivation: {motivation_text}"
+        encoded = base64.b64encode(formatted_text.encode()).decode()
+        data = {"message": "Daily update", "content": encoded, "sha": sha}
+        requests.put(url, json=data, headers=headers)
+        
+    # 2. Push Notification
+    try:
+        requests.post("https://ntfy.sh/leanders_daily_bars", 
+            data=f"{word.upper()}: {sentence}".encode('utf-8'),
+            headers={
+                "Title": "Daily Rap Bar 🎤",
+                "Priority": "high",
+                "Tags": "microphone,memo"
+            })
+        st.toast("Notification Sent!")
+    except:
+        pass
+
+# Run logic
+sync_and_notify(daily_word['word'], daily_sentence, daily_quote)
+
+# --- DISPLAY ---
+st.title(f"🎤 {daily_word['word'].upper()}")
+st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
+st.divider()
+st.info(f"📝 {daily_sentence}")
+st.warning(f"🔥 {daily_quote}")
