@@ -79,7 +79,7 @@ sentences = [
     "I built a bridge out of the stones they threw at me.",
     "Buried the past but the ghost keeps digging it up.",
     "The wolves don't bark, they wait for you to sleep.",
-    "The puzzle is finished, but there’s one piece missing."
+    "The puzzle is finished, but there is one piece missing."
 ]
 
 motivation = [
@@ -98,37 +98,32 @@ daily_word = random.choice(words)
 daily_sentence = random.choice(sentences)
 daily_quote = random.choice(motivation)
 
-# --- GITHUB UPDATE & NOTIFICATION ---
-def sync_and_notify(word, sentence, motivation_text):
-    # 1. Update GitHub
+# --- SYNC FUNCTION ---
+def sync_and_notify(word, sentence, quote):
+    # GitHub Part
     url = f"https://api.github.com/repos/{REPO_NAME}/contents/{FILE_PATH}"
     headers = {"Authorization": f"token {GITHUB_TOKEN}"}
     r = requests.get(url, headers=headers)
-    
     if r.status_code == 200:
         sha = r.json()['sha']
-        formatted_text = f"WORD: {word.upper()}\nSentence: {sentence}\nMotivation: {motivation_text}"
-        encoded = base64.b64encode(formatted_text.encode()).decode()
-        data = {"message": "Daily update", "content": encoded, "sha": sha}
+        content = f"WORD: {word.upper()}\nSentence: {sentence}\nMotivation: {quote}"
+        encoded = base64.b64encode(content.encode()).decode()
+        data = {"message": "Update", "content": encoded, "sha": sha}
         requests.put(url, json=data, headers=headers)
-        
-    # 2. Push Notification
+
+    # Notification Part
     try:
-        requests.post("https://ntfy.sh/leanders_daily_bars", 
-            data=f"{word.upper()}: {sentence}".encode('utf-8'),
-            headers={
-                "Title": "Daily Rap Bar 🎤",
-                "Priority": "high",
-                "Tags": "microphone,memo"
-            })
-        st.toast("Notification Sent!")
+        topic = "leanders_daily_bars"
+        msg = f"{word.upper()}: {sentence}"
+        requests.post(f"https://ntfy.sh/{topic}", data=msg.encode('utf-8'))
+        st.toast("Notification Pushed!")
     except:
         pass
 
-# Run logic
+# Run it
 sync_and_notify(daily_word['word'], daily_sentence, daily_quote)
 
-# --- DISPLAY ---
+# --- UI ---
 st.title(f"🎤 {daily_word['word'].upper()}")
 st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
 st.divider()
