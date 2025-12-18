@@ -191,3 +191,6 @@ st.warning(f"\"{daily_quote}\"")
 
 st.divider()
 st.button("Refresh Page")
+if st.query_params.get("plain") == "true":
+    st.write(f"{daily_word['word']} | {daily_sentence}")
+    st.stop()
