@@ -588,41 +588,34 @@ daily_quote = motivation[day_of_year % len(motivation)]
 
 # --- THE AUTOMATION FUNCTION ---
 def run_daily_automation(word, sentence, quote):
-# Part A: GitHub Update
-url = f"https://api.github.com/repos/{REPO_NAME}/contents/{FILE_PATH}&quot;<br/> headers = {"Authorization": f"token {GITHUB_TOKEN}"}
-try:
-r = requests.get(url, headers=headers)
-if r.status_code == 200:
-sha = r.json()['sha']
-content = f"WORD: {word.upper()}\nSentence: {sentence}\nMotivation: {quote}"
-encoded = base64.b64encode(content.encode()).decode()
-data = {"message": "Daily Update", "content": encoded, "sha": sha}
-requests.put(url, json=data, headers=headers)
-except:
-pass
+    # Part A: GitHub Update
+    url = f"https://api.github.com/repos/{REPO_NAME}/contents/{FILE_PATH}"
+    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    try:
+        r = requests.get(url, headers=headers)
+        if r.status_code == 200:
+            sha = r.json()['sha']
+            content = f"WORD: {word.upper()}\nSentence: {sentence}\nMotivation: {quote}"
+            encoded = base64.b64encode(content.encode()).decode()
+            data = {"message": "Daily Update", "content": encoded, "sha": sha}
+            requests.put(url, json=data, headers=headers)
+    except:
+        pass
 
-# Part B: Notifications
-topic = "leanders_daily_bars"
+    # Part B: Notifications (FORCE SEND - NO TIME FILTER)
+    topic = "leanders_daily_bars"
+    title = "FORCE TEST ✅"
+    notif_msg = f"Word: {word.upper()}\n{quote}"
 
-if current_hour == 0: # Midnight
-title = "Midnight Bars Unlocked 🔓"
-notif_msg = f"New Word: {word.upper()}\n{sentence}"
-elif current_hour == 23: # Your current hour in Belgium
-title = "Late Night Test ✅"
-notif_msg = f"Word: {word.upper()}\n{quote}"
-elif current_hour == 10: # Morning
-title = "10 AM Morning Grind ☕"
-notif_msg = quote
-else:
-return
-
-try:
-requests.post(f"https://ntfy.sh/{topic}&quot;,
-data=notif_msg.encode('utf-8'),
-headers={"Title": title, "Priority": "high"})
-st.toast(f"Push Sent: {title}")
-except:
-pass
+    try:
+        resp = requests.post(f"https://ntfy.sh/{topic}", 
+            data=notif_msg.encode('utf-8'),
+            headers={"Title": title, "Priority": "high"})
+        
+        if resp.status_code == 200:
+            st.toast("SIGNAL SENT TO NTFY!")
+    except:
+        pass
 
 # --- THE ACTUAL TRIGGER ---
 run_daily_automation(daily_word['word'], daily_sentence, daily_quote)
