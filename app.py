@@ -102,20 +102,21 @@ daily_sentence = random.choice(sentences)
 daily_quote = random.choice(motivation)
 
 # --- GITHUB UPDATE LOGIC ---
-def sync_to_github(word, sentence):
+def sync_to_github(word, sentence, motivation_text):
     url = f"https://api.github.com/repos/{REPO_NAME}/contents/{FILE_PATH}"
     headers = {"Authorization": f"token {GITHUB_TOKEN}"}
     r = requests.get(url, headers=headers)
     if r.status_code == 200:
         sha = r.json()['sha']
-        formatted_text = f"WORD: {word.upper()}\n{sentence}"
+        # --- NEW FORMATTED TEXT STRUCTURE ---
+        formatted_text = f"WORD: {word.upper()}\nSentence: {sentence}\nMotivation: {motivation_text}"
         encoded = base64.b64encode(formatted_text.encode()).decode()
         data = {"message": "Daily update", "content": encoded, "sha": sha}
         requests.put(url, json=data, headers=headers)
 
-# Auto-run the sync
+# Auto-run the sync (passing all three variables now)
 try:
-    sync_to_github(daily_word['word'], daily_sentence)
+    sync_to_github(daily_word['word'], daily_sentence, daily_quote)
 except:
     pass
 
@@ -125,4 +126,3 @@ st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
 st.divider()
 st.info(f"📝 {daily_sentence}")
 st.warning(f"🔥 {daily_quote}")
-
