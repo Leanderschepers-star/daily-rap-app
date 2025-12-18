@@ -71,4 +71,16 @@ sentences = [
     "The static on the radio sounded like a warning.",
     "I traded my shadow for a chance to stand in the light.",
     "The throne is empty, but the room is full of wolves.",
-    "I found the key, but
+    "I found the key, but they changed the lock yesterday.",
+    "Concrete flowers growing through the cracks of the curb.",
+    "The ink is heavy when the story is light.",
+    "Neon lights flickering like a heartbeat in the rain.",
+    "Silence is the loudest sound in a room full of fakes.",
+    "I built a bridge out of the stones they threw at me.",
+    "Buried the past but the ghost keeps digging it up.",
+    "The wolves don't bark, they wait for you to sleep.",
+    "The puzzle is finished, but there’s one piece missing."
+]
+
+motivation = [
+    "Amateurs
