@@ -609,31 +609,24 @@ def run_daily_automation(word, sentence, quote):
     # 2. Time-Based Notifications (The "Filter")
     topic = "leanders_daily_bars"
     
-    if current_hour == 0:        # Midnight
+    # We use Belgian time (current_hour was defined at the top)
+    if current_hour == 0:        # 12:00 AM to 12:59 AM
         title = "Midnight Bars Unlocked 🔓"
         notif_msg = f"New Word: {word.upper()}\n{sentence}"
-    elif current_hour == 10:     # 10 AM
+    elif current_hour == 10:     # 10:00 AM to 10:59 AM
         title = "10 AM Morning Grind ☕"
         notif_msg = f"Motivation: {quote}"
-    elif current_hour == 21:     # 9 PM
+    elif current_hour == 21:     # 9:00 PM to 9:59 PM (It is 10 PM now, so this passed)
         title = "9 PM Night Session 🎤"
         notif_msg = f"Daily Bar: {sentence}\n\n🔥 {quote}"
+    # --- TEST MODE ---
+    # If you want to test it RIGHT NOW (10 PM), uncomment the next 3 lines:
+    # elif current_hour == 22:
+    #     title = "Testing Notification"
+    #     notif_msg = "If you see this, the code works!"
+    # -----------------
     else:
-        # If the time isn't 0, 10, or 21, the notification part stops here
-        return 
-
-    try:
-        requests.post(f"https://ntfy.sh/{topic}", 
-            data=notif_msg.encode('utf-8'),
-            headers={
-                "Title": title,
-                "Priority": "high",
-                "Tags": "microphone,memo",
-                "Click": "https://daily-rap-app.streamlit.app"
-            })
-        st.toast(f"Push Sent: {title}")
-    except:
-        pass
+        return
 
 # --- RUN EVERYTHING ---
 run_daily_automation(daily_word['word'], daily_sentence, daily_quote)
@@ -644,4 +637,5 @@ st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
 st.divider()
 st.info(f"📝 {daily_sentence}")
 st.warning(f"🔥 {daily_quote}")
+
 
