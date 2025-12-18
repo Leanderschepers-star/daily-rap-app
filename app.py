@@ -5,7 +5,7 @@ import requests
 import base64
 
 # --- GITHUB CONFIGURATION ---
-GITHUB_TOKEN = "YOUR_GITHUB_TOKEN_HERE" 
+GITHUB_TOKEN = st.secrets["GITHUB_TOKEN"] 
 REPO_NAME = "Leanderschepers-star/daily-rap-app"
 FILE_PATH = "daily_bars.txt"
 
@@ -125,3 +125,4 @@ st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
 st.divider()
 st.info(f"📝 {daily_sentence}")
 st.warning(f"🔥 {daily_quote}")
+
