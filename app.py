@@ -93,14 +93,17 @@ motivation = [
     "Don't stop when you're tired; stop when you're done."
 ]
 
-# --- PICK DATA ---
+# --- PICK DATA (LOCKED TO DATE) ---
+today = datetime.date.today()
+random.seed(today.toordinal()) # Ensures sync across all platforms
+
 daily_word = random.choice(words)
 daily_sentence = random.choice(sentences)
 daily_quote = random.choice(motivation)
 
 # --- SYNC FUNCTION ---
 def sync_and_notify(word, sentence, quote):
-    # GitHub Part
+    # GitHub Update
     url = f"https://api.github.com/repos/{REPO_NAME}/contents/{FILE_PATH}"
     headers = {"Authorization": f"token {GITHUB_TOKEN}"}
     r = requests.get(url, headers=headers)
@@ -111,7 +114,7 @@ def sync_and_notify(word, sentence, quote):
         data = {"message": "Update", "content": encoded, "sha": sha}
         requests.put(url, json=data, headers=headers)
 
-    # Notification Part
+    # Notification Update
     try:
         topic = "leanders_daily_bars"
         msg = f"{word.upper()}: {sentence}"
@@ -120,7 +123,7 @@ def sync_and_notify(word, sentence, quote):
     except:
         pass
 
-# Run it
+# Run logic
 sync_and_notify(daily_word['word'], daily_sentence, daily_quote)
 
 # --- UI ---
