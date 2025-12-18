@@ -18,20 +18,7 @@ day_of_year = now.timetuple().tm_yday
 current_hour = now.hour
 
 # --- CONSOLIDATED SYNC & NOTIFICATION LOGIC ---
-def run_daily_automation(word, sentence, quote):
-    # 1. GitHub Update
-    url = f"https://api.github.com/repos/{REPO_NAME}/contents/{FILE_PATH}"
-    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
-    try:
-        r = requests.get(url, headers=headers)
-        if r.status_code == 200:
-            sha = r.json()['sha']
-            content = f"WORD: {word.upper()}\nSentence: {sentence}\nMotivation: {quote}"
-            encoded = base64.b64encode(content.encode()).decode()
-            data = {"message": "Daily Update", "content": encoded, "sha": sha}
-            requests.put(url, json=data, headers=headers)
-    except:
-        pass
+
 
     # 2. Time-Based Notifications
     topic = "leanders_daily_bars"
@@ -64,9 +51,6 @@ def run_daily_automation(word, sentence, quote):
     except:
         pass
 
-# --- RUN EVERYTHING ---
-# (Make sure daily_word, daily_sentence, daily_quote are defined above this)
-run_daily_automation(daily_word['word'], daily_sentence, daily_quote)
 # --- DATA BANK ---
 words = [
     {"word": "Obsession", "rhymes": "Possession, Progression, Lesson"}, {"word": "Titanium", "rhymes": "Cranium, Uranium, Stadium"},
@@ -689,6 +673,3 @@ st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
 st.divider()
 st.info(f"📝 {daily_sentence}")
 st.warning(f"🔥 {daily_quote}")
-
-
-
