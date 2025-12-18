@@ -618,12 +618,16 @@ def run_daily_automation(word, sentence, quote):
     except:
         pass
 
+# --- PICK TODAY'S DATA ---
+# This must be here so the code knows what 'daily_word' is!
+daily_word = words[day_of_year % len(words)]
+daily_sentence = sentences[day_of_year % len(sentences)]
+daily_quote = motivation[day_of_year % len(motivation)]
+
 # --- THE ACTUAL TRIGGER ---
-# This must be all the way to the left (no spaces)
 run_daily_automation(daily_word['word'], daily_sentence, daily_quote)
 
 # --- THE UI ---
-# These must also be all the way to the left
 st.title(f"🎤 {daily_word['word'].upper()}")
 st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
 st.divider()
