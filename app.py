@@ -3,54 +3,23 @@ import random
 import datetime
 import requests
 import base64
-import pytz  # This handles the Belgium timezone
+import pytz 
 
-# --- GITHUB CONFIGURATION ---
+# 1. Config
 GITHUB_TOKEN = st.secrets["GITHUB_TOKEN"] 
 REPO_NAME = "Leanderschepers-star/daily-rap-app"
 FILE_PATH = "daily_bars.txt"
 
-# --- THE 365-DAY SELECTOR LOGIC ---
-# This ensures current_hour matches your watch in Belgium
+# 2. Time
 belgium_tz = pytz.timezone('Europe/Brussels')
 now = datetime.datetime.now(belgium_tz)
 day_of_year = now.timetuple().tm_yday
 current_hour = now.hour
 
-# --- CONSOLIDATED SYNC & NOTIFICATION LOGIC ---
-
-
-    # 2. Time-Based Notifications
-    topic = "leanders_daily_bars"
-    
-    if current_hour == 0:        # Midnight
-        title = "Midnight Bars Unlocked 🔓"
-        notif_msg = f"New Word: {word.upper()}\n{sentence}"
-    elif current_hour == 10:     # 10 AM
-        title = "10 AM Morning Grind ☕"
-        notif_msg = f"Motivation: {quote}"
-    elif current_hour == 21:     # 9 PM
-        title = "9 PM Night Session 🎤"
-        notif_msg = f"Daily Bar: {sentence}\n\n🔥 {quote}"
-    elif current_hour == 22:     # TEST MODE (Active right now!)
-        title = "Belgium Time Test ✅"
-        notif_msg = "If you see this, the clock is fixed!"
-    else:
-        return 
-
-    try:
-        requests.post(f"https://ntfy.sh/{topic}", 
-            data=notif_msg.encode('utf-8'),
-            headers={
-                "Title": title,
-                "Priority": "high",
-                "Tags": "microphone,white_check_mark",
-                "Click": "https://daily-rap-app.streamlit.app"
-            })
-        st.toast(f"Push Sent: {title}")
-    except:
-        pass
-
+# 3. Data (Your big lists of words/sentences go here)
+words = [ ... ] 
+sentences = [ ... ]
+motivation = [ ... ]
 # --- DATA BANK ---
 words = [
     {"word": "Obsession", "rhymes": "Possession, Progression, Lesson"}, {"word": "Titanium", "rhymes": "Cranium, Uranium, Stadium"},
@@ -611,14 +580,14 @@ motivation = [
     "Your potential is waiting for you to unleash it.", "Keep working hard and stay true to your vision.",
     "Success is the final destination on your journey of excellence."
 ]
-# --- PICK DATA (FIXED 365-DAY CYCLE) ---
+# --- PICK TODAY'S DATA ---
 daily_word = words[day_of_year % len(words)]
 daily_sentence = sentences[day_of_year % len(sentences)]
 daily_quote = motivation[day_of_year % len(motivation)]
 
-# --- CONSOLIDATED SYNC & NOTIFICATION LOGIC ---
+# --- THE AUTOMATION FUNCTION ---
 def run_daily_automation(word, sentence, quote):
-    # 1. GitHub Update (Always runs to keep your widget fresh)
+    # Part A: GitHub Update
     url = f"https://api.github.com/repos/{REPO_NAME}/contents/{FILE_PATH}"
     headers = {"Authorization": f"token {GITHUB_TOKEN}"}
     try:
@@ -632,44 +601,32 @@ def run_daily_automation(word, sentence, quote):
     except:
         pass
 
-    # 2. Time-Based Notifications (The "Filter")
+    # Part B: Notifications
     topic = "leanders_daily_bars"
     
-    # INDENTATION FIXED BELOW:
     if current_hour == 0:        # Midnight
         title = "Midnight Bars Unlocked 🔓"
         notif_msg = f"New Word: {word.upper()}\n{sentence}"
-    elif current_hour == 10:     # 10 AM
-        title = "10 AM Morning Grind ☕"
-        notif_msg = f"Motivation: {quote}"
-    elif current_hour == 21:     # 9 PM
-        title = "9 PM Night Session 🎤"
-        notif_msg = f"Daily Bar: {sentence}\n\n🔥 {quote}"
-    elif current_hour == 22:     # TEST MODE FOR 10 PM
+    elif current_hour == 22:     # TEST FOR 10 PM
         title = "System Test ✅"
-        notif_msg = "The logic is working!"
+        notif_msg = "It works!"
+    elif current_hour == 23:     # TEST FOR 11 PM (Use this if it's past 11!)
+        title = "Late Night Test ✅"
+        notif_msg = "The clock is perfect."
     else:
         return 
 
     try:
         requests.post(f"https://ntfy.sh/{topic}", 
             data=notif_msg.encode('utf-8'),
-            headers={
-                "Title": title,
-                "Priority": "high",
-                "Tags": "microphone,memo",
-                "Click": "https://daily-rap-app.streamlit.app"
-            })
+            headers={"Title": title, "Priority": "high"})
         st.toast(f"Push Sent: {title}")
     except:
         pass
 
-# --- RUN EVERYTHING ---
+# --- THE ACTUAL TRIGGER ---
 run_daily_automation(daily_word['word'], daily_sentence, daily_quote)
 
-# --- UI ---
+# --- THE UI ---
 st.title(f"🎤 {daily_word['word'].upper()}")
-st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
-st.divider()
-st.info(f"📝 {daily_sentence}")
-st.warning(f"🔥 {daily_quote}")
+st.info(daily_sentence)
