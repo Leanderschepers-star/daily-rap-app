@@ -101,22 +101,36 @@ daily_word = random.choice(words)
 daily_sentence = random.choice(sentences)
 daily_quote = random.choice(motivation)
 
-# --- GITHUB UPDATE LOGIC ---
-def sync_to_github(word, sentence, motivation_text):
+# --- GITHUB UPDATE & NOTIFICATION LOGIC ---
+def sync_and_notify(word, sentence, motivation_text):
+    # 1. Update GitHub (For Widget)
     url = f"https://api.github.com/repos/{REPO_NAME}/contents/{FILE_PATH}"
     headers = {"Authorization": f"token {GITHUB_TOKEN}"}
     r = requests.get(url, headers=headers)
+    
     if r.status_code == 200:
         sha = r.json()['sha']
-        # --- NEW FORMATTED TEXT STRUCTURE ---
         formatted_text = f"WORD: {word.upper()}\nSentence: {sentence}\nMotivation: {motivation_text}"
         encoded = base64.b64encode(formatted_text.encode()).decode()
         data = {"message": "Daily update", "content": encoded, "sha": sha}
         requests.put(url, json=data, headers=headers)
+        
+        # 2. Send Push Notification (For Phone)
+        try:
+            # Topic: 'leanders_daily_bars' (Must match your app subscription)
+            requests.post("https://ntfy.sh/leanders_daily_bars", 
+                data=f"{word.upper()}: {sentence}".encode('utf-8'),
+                headers={
+                    "Title": "Daily Rap Bar 🎤",
+                    "Priority": "high",
+                    "Tags": "microphone,memo"
+                })
+        except:
+            pass # Fails silently so the widget still works
 
-# Auto-run the sync (passing all three variables now)
+# Auto-run the sync and notification
 try:
-    sync_to_github(daily_word['word'], daily_sentence, daily_quote)
+    sync_and_notify(daily_word['word'], daily_sentence, daily_quote)
 except:
     pass
 
