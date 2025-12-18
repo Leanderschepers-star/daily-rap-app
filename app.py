@@ -609,8 +609,8 @@ def run_daily_automation(word, sentence, quote):
 
     try:
         resp = requests.post(f"https://ntfy.sh/{topic}", 
-            data=notif_msg.encode('utf-8'),
-            headers={"Title": title, "Priority": "high"})
+                             data=notif_msg.encode('utf-8'),
+                             headers={"Title": title, "Priority": "high"})
         
         if resp.status_code == 200:
             st.toast("SIGNAL SENT TO NTFY!")
