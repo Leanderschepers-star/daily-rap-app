@@ -620,7 +620,7 @@ def run_daily_automation(word, sentence, quote):
     elif current_hour == 21:     # 9 PM
         title = "9 PM Night Session 🎤"
         notif_msg = f"Daily Bar: {sentence}\n\n🔥 {quote}"
-    elif current_hour == 23:     # TEST MODE FOR 10 PM
+    elif current_hour == 22:     # TEST MODE FOR 10 PM
         title = "System Test ✅"
         notif_msg = "The logic is working!"
     else:
@@ -648,4 +648,5 @@ st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
 st.divider()
 st.info(f"📝 {daily_sentence}")
 st.warning(f"🔥 {daily_quote}")
+
 
