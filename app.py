@@ -581,14 +581,8 @@ motivation = [
     "Success is the final destination on your journey of excellence."
 ]
 
-# --- PICK TODAY'S DATA ---
-daily_word = words[day_of_year % len(words)]
-daily_sentence = sentences[day_of_year % len(sentences)]
-daily_quote = motivation[day_of_year % len(motivation)]
-
-# --- THE AUTOMATION FUNCTION ---
 def run_daily_automation(word, sentence, quote):
-    # 1. Update GitHub
+    # Part A: GitHub Update (Runs every time page is loaded)
     try:
         url = f"https://api.github.com/repos/{REPO_NAME}/contents/{FILE_PATH}"
         headers = {"Authorization": f"token {GITHUB_TOKEN}"}
@@ -602,23 +596,25 @@ def run_daily_automation(word, sentence, quote):
     except:
         pass
 
-    # 2. Send Notification
+    # Part B: Notifications (The Scheduled Version)
+    topic = "leanders_daily_bars"
+    
+    # This checks the Belgium hour we defined at the top
+    if current_hour == 0:        # Midnight
+        title = "Midnight Bars Unlocked 🔓"
+        notif_msg = f"New Word: {word.upper()}\n{sentence}"
+    elif current_hour == 10:     # 10 AM
+        title = "Morning Grind ☕"
+        notif_msg = quote
+    else:
+        # If it's not 0 or 10, STOP here and don't send anything
+        return 
+
     try:
-        ntfy_url = "https://ntfy.sh/leanders_daily_bars"
-        msg = f"Word: {word}\n{quote}"
+        ntfy_url = f"https://ntfy.sh/{topic}"
         requests.post(ntfy_url, 
-                      data=msg.encode('utf-8'), 
-                      headers={"Title": "Daily Check ✅", "Priority": "5"})
-        st.toast("SIGNAL SENT!")
+                      data=notif_msg.encode('utf-8'), 
+                      headers={"Title": title, "Priority": "high"})
+        st.toast(f"Scheduled Push Sent: {title}")
     except:
         pass
-
-# --- THE ACTUAL TRIGGER ---
-run_daily_automation(daily_word['word'], daily_sentence, daily_quote)
-
-# --- THE UI ---
-st.title(f"🎤 {daily_word['word'].upper()}")
-st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
-st.divider()
-st.info(f"📝 {daily_sentence}")
-st.warning(f"🔥 {daily_quote}")
