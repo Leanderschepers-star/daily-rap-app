@@ -100,4 +100,14 @@ st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
 st.divider()
 st.info(f"📝 {daily_sentence}")
 st.warning(f"🔥 {daily_quote}")
-st.write("---END---")
+# --- THE WIDGET-FRIENDLY VIEW ---
+# If you add "?view=text" to your URL, it will show ONLY the words
+if st.query_params.get("view") == "text":
+    st.write(f"{daily_word['word'].upper()} | {daily_sentence}")
+else:
+    # This is your normal pretty website
+    st.title(f"🎤 {daily_word['word'].upper()}")
+    st.info(f"Rhymes: {daily_word['rhymes']}")
+    st.write(daily_sentence)
+    st.caption(daily_quote)
+    
