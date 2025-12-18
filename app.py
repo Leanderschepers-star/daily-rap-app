@@ -588,10 +588,10 @@ daily_quote = motivation[day_of_year % len(motivation)]
 
 # --- THE AUTOMATION FUNCTION ---
 def run_daily_automation(word, sentence, quote):
-    # Part A: GitHub Update
-    url = f"https://api.github.com/repos/{REPO_NAME}/contents/{FILE_PATH}"
-    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    # 1. Update GitHub
     try:
+        url = f"https://api.github.com/repos/{REPO_NAME}/contents/{FILE_PATH}"
+        headers = {"Authorization": f"token {GITHUB_TOKEN}"}
         r = requests.get(url, headers=headers)
         if r.status_code == 200:
             sha = r.json()['sha']
@@ -602,20 +602,16 @@ def run_daily_automation(word, sentence, quote):
     except:
         pass
 
-    # Part B: Notifications
-    topic = "leanders_daily_bars"
+    # 2. Send Notification
     try:
-        # We use a simple URL here to avoid the &quot; glitch
-        ntfy_url = "https://ntfy.sh/" + topic
+        ntfy_url = "https://ntfy.sh/leanders_daily_bars"
+        msg = f"Word: {word}\n{quote}"
         requests.post(ntfy_url, 
-            data=f"Word: {word.upper()}\n{quote}".encode('utf-8'),
-            headers={
-                "Title": "Daily Rap Test ✅",
-                "Priority": "high"
-            })
-        st.toast("SIGNAL SENT!") 
-    except Exception as e:
-        st.error(f"Error: {e}")
+                      data=msg.encode('utf-8'), 
+                      headers={"Title": "Daily Check ✅", "Priority": "5"})
+        st.toast("SIGNAL SENT!")
+    except:
+        pass
 
 # --- THE ACTUAL TRIGGER ---
 run_daily_automation(daily_word['word'], daily_sentence, daily_quote)
