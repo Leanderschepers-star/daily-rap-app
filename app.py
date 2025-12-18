@@ -586,6 +586,7 @@ motivation = [
     "Your potential is waiting for you to unleash it.", "Keep working hard and stay true to your vision.",
     "Success is the final destination on your journey of excellence."
 ]
+# --- PICK DATA (FIXED 365-DAY CYCLE) ---
 daily_word = words[day_of_year % len(words)]
 daily_sentence = sentences[day_of_year % len(sentences)]
 daily_quote = motivation[day_of_year % len(motivation)]
@@ -609,8 +610,8 @@ def run_daily_automation(word, sentence, quote):
     # 2. Time-Based Notifications (The "Filter")
     topic = "leanders_daily_bars"
     
-    # We use Belgian time (current_hour was defined at the top)
-if current_hour == 0:        # Midnight
+    # INDENTATION FIXED BELOW:
+    if current_hour == 0:        # Midnight
         title = "Midnight Bars Unlocked 🔓"
         notif_msg = f"New Word: {word.upper()}\n{sentence}"
     elif current_hour == 10:     # 10 AM
@@ -619,16 +620,24 @@ if current_hour == 0:        # Midnight
     elif current_hour == 21:     # 9 PM
         title = "9 PM Night Session 🎤"
         notif_msg = f"Daily Bar: {sentence}\n\n🔥 {quote}"
+    elif current_hour == 22:     # TEST MODE FOR 10 PM
+        title = "System Test ✅"
+        notif_msg = "The logic is working!"
     else:
-        return
-    # --- TEST MODE ---
-    # If you want to test it RIGHT NOW (10 PM), uncomment the next 3 lines:
-    # elif current_hour == 22:
-    #     title = "Testing Notification"
-    #     notif_msg = "If you see this, the code works!"
-    # -----------------
-    else:
-        return
+        return 
+
+    try:
+        requests.post(f"https://ntfy.sh/{topic}", 
+            data=notif_msg.encode('utf-8'),
+            headers={
+                "Title": title,
+                "Priority": "high",
+                "Tags": "microphone,memo",
+                "Click": "https://daily-rap-app.streamlit.app"
+            })
+        st.toast(f"Push Sent: {title}")
+    except:
+        pass
 
 # --- RUN EVERYTHING ---
 run_daily_automation(daily_word['word'], daily_sentence, daily_quote)
@@ -639,7 +648,3 @@ st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
 st.divider()
 st.info(f"📝 {daily_sentence}")
 st.warning(f"🔥 {daily_quote}")
-
-
-
-
