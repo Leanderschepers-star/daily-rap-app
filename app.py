@@ -581,6 +581,11 @@ motivation = [
     "Success is the final destination on your journey of excellence."
 ]
 
+# --- TIME SETUP ---
+now = datetime.datetime.now()
+current_hour = now.hour
+day_of_year = now.timetuple().tm_yday
+
 # --- THE AUTOMATION FUNCTION ---
 def run_daily_automation(word, sentence, quote):
     st.sidebar.header("Status")
@@ -595,13 +600,17 @@ def run_daily_automation(word, sentence, quote):
     should_send = False
     sha = None
     existing_text = ""
+    
+    # Check GitHub Logic
     try:
         r = requests.get(url, headers=headers)
         if r.status_code == 200:
             data = r.json()
             sha = data['sha']
+            # Decode content
             existing_text = base64.b64decode(data['content']).decode('utf-8')
-            # The gatekeeper: check if we already buzzed this hour
+            
+            # The Gatekeeper: Don't send if we already did this hour
             if today_stamp not in existing_text:
                 should_send = True
         else:
@@ -609,10 +618,10 @@ def run_daily_automation(word, sentence, quote):
     except:
         should_send = True
 
-    # 2. The Logic Gate
+    # 2. Trigger Logic (Schedule)
     if current_hour in [0, 10, 11, 20, 21] and should_send:
-        topic = "leanders_daily_bars"
         
+        # Define Titles
         if current_hour == 0: title = "Midnight Bars"
         elif current_hour == 10: title = "Morning Grind"
         elif current_hour == 11: title = "You Got This"
@@ -620,52 +629,63 @@ def run_daily_automation(word, sentence, quote):
         elif current_hour == 21: title = "Last Chance"
         else: title = "Daily Update"
 
+        # Prepare Clean Message
         full_msg = f"WORD: {word.upper()}\n\n{sentence}\n\nMotivation: {quote}"
-
+        
         try:
             # Send Notification
-            requests.post(f"https://ntfy.sh/{topic}", 
+            requests.post("https://ntfy.sh/leanders_daily_bars", 
                           data=full_msg.encode('utf-8'), 
                           headers={"Title": title, "Priority": "high"})
             
-            # --- THE FIX: Separating the Log from the Content ---
-            # We save the clean message at the top, then a divider, then the memory stamp.
+            # Update GitHub (Content TOP, Logs BOTTOM)
             new_content = f"{full_msg}\n\n--- LOG HISTORY ---\nLOG: {today_stamp}\n{existing_text}"
             
             encoded = base64.b64encode(new_content.encode('utf-8')).decode('utf-8')
             update_data = {"message": f"Log {title}", "content": encoded}
             if sha: update_data["sha"] = sha
-            
             requests.put(url, json=update_data, headers=headers)
-            st.sidebar.success(f"Sent: {title}")
             
+            st.sidebar.success(f"Sent: {title}")
         except Exception as e:
             st.sidebar.error(f"Error: {e}")
+
     else:
         st.sidebar.info("Standing by... (Waiting for next drop)")
 
+# --- 1. PICK TODAY'S DATA ---
+daily_word = words[day_of_year % len(words)]
+daily_sentence = sentences[day_of_year % len(sentences)]
+daily_quote = motivation[day_of_year % len(motivation)]
 
+# --- 2. TRIGGER THE FUNCTION ---
+run_daily_automation(daily_word['word'], daily_sentence, daily_quote)
 
-# --- 3. THE UI (BULLETPROOF VERSION) ---
+# --- 3. THE UI (CLEAN & FIXED) ---
 st.title("🎤 LEANDER'S DAILY BARS")
 
-# 1. Show the Word
-word_text = daily_word['word'].upper()
-st.header(word_text)
-st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
+# Safety: Handle dictionary vs string for 'word'
+if isinstance(daily_word, dict):
+    raw_word = daily_word.get('word', 'Unknown')
+    raw_rhymes = daily_word.get('rhymes', 'None')
+else:
+    raw_word = str(daily_word)
+    raw_rhymes = "Check dictionary"
+
+# CLEANING: Remove any LOG stamps
+clean_word = raw_word.split("---")[0].split("LOG:")[0].strip()
+clean_sentence = daily_sentence.split("---")[0].split("LOG:")[0].strip()
+clean_quote = daily_quote.split("---")[0].split("LOG:")[0].strip()
+
+# DISPLAY
+st.header(clean_word.upper())
+st.markdown(f"**Rhymes:** {raw_rhymes}")
 
 st.divider()
 
-# 2. Show the Sentence (The Split ensures no LOG text appears)
-clean_sentence = daily_sentence.split("---")[0].split("LOG:")[0].strip()
 st.info(f"📝 {clean_sentence}")
-
-# 3. Show the Quote
-clean_quote = daily_quote.split("---")[0].split("LOG:")[0].strip()
 st.warning(f"🔥 {clean_quote}")
 
 st.sidebar.divider()
-st.sidebar.caption("App Version: 2.0 (Clean UI)")
-
-
+st.sidebar.caption("System Active")
 
