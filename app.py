@@ -583,60 +583,20 @@ motivation = [
 
 # --- THE AUTOMATION FUNCTION ---
 def run_daily_automation(word, sentence, quote):
-    # Part A: GitHub Update
-    try:
-        url = f"https://api.github.com/repos/{REPO_NAME}/contents/{FILE_PATH}"
-        headers = {"Authorization": f"token {GITHUB_TOKEN}"}
-        r = requests.get(url, headers=headers)
-        if r.status_code == 200:
-            sha = r.json()['sha']
-            content = f"WORD: {word.upper()}\nSentence: {sentence}\nMotivation: {quote}"
-            encoded = base64.b64encode(content.encode()).decode()
-            data = {"message": "Daily Update", "content": encoded, "sha": sha}
-            requests.put(url, json=data, headers=headers)
-    except:
-        pass
-
-# Part B: Notifications (With Anti-Spam Memory)
-    topic = "leanders_daily_bars"
+    # (Keep all your logic inside here exactly as you pasted it...)
     st.sidebar.write(f"Server Time (BE): {now.strftime('%H:%M')}")
+    # ... [rest of your function code] ...
+    # (Make sure the 'try/except' for the notification is indented inside here)
 
-    # 1. Create a unique ID for this specific hour (e.g., "2023-10-27-10")
-    notif_id = f"{datetime.date.today()}-{current_hour}"
-
-    # 2. Check if we've already sent a buzz for this hour in this session
-    if "last_sent_id" not in st.session_state:
-        st.session_state.last_sent_id = None
-
-    if current_hour in [0, 10]:
-        # ONLY proceed if this hour's ID hasn't been saved yet
-        if st.session_state.last_sent_id != notif_id:
-            title = "Morning Grind" if current_hour == 10 else "Midnight Bars Unlocked"
-            full_message = f"WORD: {word.upper()}\n\nSentence: {sentence}\n\nMotivation: {quote}"
-            
-            try:
-                ntfy_url = f"https://ntfy.sh/{topic}"
-                requests.post(ntfy_url, data=full_message, headers={"Title": title, "Priority": "high"})
-                
-                # 3. SAVE the ID so it doesn't send again until the next scheduled hour
-                st.session_state.last_sent_id = notif_id
-                st.toast(f"Push Sent: {title}")
-            except:
-                pass
-    else:
-        # It's not 0 or 10, so just stop here
-        return
-
-# --- PICK TODAY'S DATA ---
-# This is back to the left because it happens AFTER the function is defined
+# --- 1. PICK TODAY'S DATA (This must be outside the function) ---
 daily_word = words[day_of_year % len(words)]
 daily_sentence = sentences[day_of_year % len(sentences)]
 daily_quote = motivation[day_of_year % len(motivation)]
 
-# --- THE ACTUAL TRIGGER ---
+# --- 2. THE ACTUAL TRIGGER (This is what makes it run!) ---
 run_daily_automation(daily_word['word'], daily_sentence, daily_quote)
 
-# --- THE UI ---
+# --- 3. THE UI ---
 st.title(f"🎤 {daily_word['word'].upper()}")
 st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
 st.divider()
