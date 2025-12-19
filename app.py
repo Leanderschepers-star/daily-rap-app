@@ -597,31 +597,35 @@ def run_daily_automation(word, sentence, quote):
     except:
         pass
 
-# Part B: Notifications (Full Content Version)
+# Part B: Notifications (With Anti-Spam Memory)
     topic = "leanders_daily_bars"
-    
     st.sidebar.write(f"Server Time (BE): {now.strftime('%H:%M')}")
 
-    # The Message Template (Word + Sentence + Quote)
-    full_message = f"WORD: {word.upper()}\n\nSentence: {sentence}\n\nMotivation: {quote}"
+    # 1. Create a unique ID for this specific hour (e.g., "2023-10-27-10")
+    notif_id = f"{datetime.date.today()}-{current_hour}"
 
-    if current_hour == 0:
-        title = "Midnight Bars Unlocked"
-        notif_msg = full_message
-    elif current_hour == 10:
-        title = "Morning Grind"
-        notif_msg = full_message
+    # 2. Check if we've already sent a buzz for this hour in this session
+    if "last_sent_id" not in st.session_state:
+        st.session_state.last_sent_id = None
+
+    if current_hour in [0, 10]:
+        # ONLY proceed if this hour's ID hasn't been saved yet
+        if st.session_state.last_sent_id != notif_id:
+            title = "Morning Grind" if current_hour == 10 else "Midnight Bars Unlocked"
+            full_message = f"WORD: {word.upper()}\n\nSentence: {sentence}\n\nMotivation: {quote}"
+            
+            try:
+                ntfy_url = f"https://ntfy.sh/{topic}"
+                requests.post(ntfy_url, data=full_message, headers={"Title": title, "Priority": "high"})
+                
+                # 3. SAVE the ID so it doesn't send again until the next scheduled hour
+                st.session_state.last_sent_id = notif_id
+                st.toast(f"Push Sent: {title}")
+            except:
+                pass
     else:
-        return 
-
-    try:
-        ntfy_url = f"https://ntfy.sh/{topic}"
-        requests.post(ntfy_url, 
-                      data=notif_msg, 
-                      headers={"Title": title, "Priority": "high"})
-        st.toast(f"Push Sent: {title}")
-    except Exception as e:
-        st.error(f"Notification Error: {e}")
+        # It's not 0 or 10, so just stop here
+        return
 
 # --- PICK TODAY'S DATA ---
 # This is back to the left because it happens AFTER the function is defined
@@ -638,6 +642,7 @@ st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
 st.divider()
 st.info(f"📝 {daily_sentence}")
 st.warning(f"🔥 {daily_quote}")
+
 
 
 
