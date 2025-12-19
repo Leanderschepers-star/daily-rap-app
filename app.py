@@ -583,11 +583,10 @@ motivation = [
 
 # --- THE AUTOMATION FUNCTION ---
 def run_daily_automation(word, sentence, quote):
-    # Sidebar Status
-    st.sidebar.header("⏱️ Status")
+    st.sidebar.header("Status")
     st.sidebar.write(f"Server Time: {now.strftime('%H:%M')}")
     
-    # 1. Permanent Memory Stamp (Official Version)
+    # 1. Permanent Memory Stamp
     today_stamp = f"{datetime.date.today()}-{current_hour}"
 
     url = f"https://api.github.com/repos/{REPO_NAME}/contents/{FILE_PATH}"
@@ -595,13 +594,13 @@ def run_daily_automation(word, sentence, quote):
     
     should_send = False
     sha = None
+    existing_text = ""
     try:
         r = requests.get(url, headers=headers)
         if r.status_code == 200:
             data = r.json()
             sha = data['sha']
             existing_text = base64.b64decode(data['content']).decode('utf-8')
-            # Check if this specific hour has already been logged
             if today_stamp not in existing_text:
                 should_send = True
         else:
@@ -609,61 +608,24 @@ def run_daily_automation(word, sentence, quote):
     except:
         should_send = True
 
-    # 2. The 3-Hour Logic Gate
-    if current_hour in [0, 10, 20, 21] and should_send:
+    # 2. The Logic Gate (Added 11 just in case based on your titles!)
+    if current_hour in [0, 10, 11, 20, 21] and should_send:
         topic = "leanders_daily_bars"
         
-        # Set titles based on the hour
-        if current_hour == 0:
-            title = "Midnight Bars"
-        elif current_hour == 10:
-            title = "Morning Grind"
-        elif current_hour == 11:
-            title = "You Got This"
-        elif current_hour == 20:
-            title = "Evening Session"
-        elif current_hour == 21:
-            title = "Come on, last chance for the day"
-        else:
-            title = "Daily Update"
+        if current_hour == 0: title = "Midnight Bars"
+        elif current_hour == 10: title = "Morning Grind"
+        elif current_hour == 11: title = "You Got This"
+        elif current_hour == 20: title = "Evening Session"
+        elif current_hour == 21: title = "Last Chance"
+        else: title = "Daily Update"
 
         full_msg = f"WORD: {word.upper()}\n\n{sentence}\n\nMotivation: {quote}"
 
         try:
-            # Send Notification to Nothing Phone
+            # Send Notification
             requests.post(f"https://ntfy.sh/{topic}", 
                           data=full_msg.encode('utf-8'), 
                           headers={"Title": title, "Priority": "high"})
-            
-            # Log it to GitHub so it stays quiet until the next scheduled hour
-            new_content = f"LOG: {today_stamp}\n\n{full_msg}"
-            encoded = base64.b64encode(new_content.encode('utf-8')).decode('utf-8')
-            update_data = {"message": "Daily Log Update", "content": encoded}
-            if sha: update_data["sha"] = sha
-            requests.put(url, json=update_data, headers=headers)
-            
-            st.sidebar.success(f"Sent: {title}")
-        except:
-            pass
-    else:
-        st.sidebar.info("Standing by... (Waiting for next drop)")
-
-# --- 1. PICK TODAY'S DATA ---
-daily_word = words[day_of_year % len(words)]
-daily_sentence = sentences[day_of_year % len(sentences)]
-daily_quote = motivation[day_of_year % len(motivation)]
-
-# --- 2. THE ACTUAL TRIGGER ---
-run_daily_automation(daily_word['word'], daily_sentence, daily_quote)
-
-# --- 3. THE UI ---
-st.title(f"🎤 {daily_word['word'].upper()}")
-st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
-st.divider()
-st.info(f"📝 {daily_sentence}")
-st.warning(f"🔥 {daily_quote}")
-
-
 
 
 
