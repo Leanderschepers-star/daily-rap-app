@@ -610,7 +610,7 @@ def run_daily_automation(word, sentence, quote):
         should_send = True
 
     # 2. The 3-Hour Logic Gate
-    if current_hour in [0, 10, 21] and should_send:
+    if current_hour in [0, 10, 20, 21] and should_send:
         topic = "leanders_daily_bars"
         
         # Set titles based on the hour
@@ -618,8 +618,10 @@ def run_daily_automation(word, sentence, quote):
             title = "Midnight Bars"
         elif current_hour == 10:
             title = "Morning Grind"
+        elif current_hour == 20:
+            title = "Evening Session"
         elif current_hour == 21:
-            title = "Evening Reflection"
+            title = "Come on, last chance for the day"
         else:
             title = "Daily Update"
 
@@ -658,6 +660,7 @@ st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
 st.divider()
 st.info(f"📝 {daily_sentence}")
 st.warning(f"🔥 {daily_quote}")
+
 
 
 
