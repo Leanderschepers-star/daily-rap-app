@@ -597,13 +597,16 @@ def run_daily_automation(word, sentence, quote):
     except:
         pass
 
-    # Part B: Notifications
+    # Part B: Notifications (Indented so it stays inside the function)
     topic = "leanders_daily_bars"
     
-    if current_hour == 0:        # Midnight
+    # DEBUG: See the time in your sidebar
+    st.sidebar.write(f"Server Time (BE): {now.strftime('%H:%M')}")
+
+    if current_hour == 0:
         title = "Midnight Bars Unlocked 🔓"
         notif_msg = f"New Word: {word.upper()}\n{sentence}"
-    elif current_hour == 10:     # 10 AM
+    elif current_hour == 10:
         title = "Morning Grind ☕"
         notif_msg = quote
     else:
@@ -615,11 +618,11 @@ def run_daily_automation(word, sentence, quote):
                       data=notif_msg.encode('utf-8'), 
                       headers={"Title": title, "Priority": "high"})
         st.toast(f"Push Sent: {title}")
-    except:
-        pass
+    except Exception as e:
+        st.write(f"Notification Error: {e}")
 
 # --- PICK TODAY'S DATA ---
-# This must be here so the code knows what 'daily_word' is!
+# This is back to the left because it happens AFTER the function is defined
 daily_word = words[day_of_year % len(words)]
 daily_sentence = sentences[day_of_year % len(sentences)]
 daily_quote = motivation[day_of_year % len(motivation)]
@@ -633,3 +636,4 @@ st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
 st.divider()
 st.info(f"📝 {daily_sentence}")
 st.warning(f"🔥 {daily_quote}")
+
