@@ -597,29 +597,31 @@ def run_daily_automation(word, sentence, quote):
     except:
         pass
 
-    # Part B: Notifications (Indented so it stays inside the function)
+# Part B: Notifications (Full Content Version)
     topic = "leanders_daily_bars"
     
-    # DEBUG: See the time in your sidebar
     st.sidebar.write(f"Server Time (BE): {now.strftime('%H:%M')}")
+
+    # The Message Template (Word + Sentence + Quote)
+    full_message = f"WORD: {word.upper()}\n\nSentence: {sentence}\n\nMotivation: {quote}"
 
     if current_hour == 0:
         title = "Midnight Bars Unlocked"
-        notif_msg = f"New Word: {word.upper()}\n{sentence}"
+        notif_msg = full_message
     elif current_hour == 10:
         title = "Morning Grind"
-        notif_msg = quote
+        notif_msg = full_message
     else:
         return 
 
     try:
         ntfy_url = f"https://ntfy.sh/{topic}"
         requests.post(ntfy_url, 
-                      data=notif_msg.encode('utf-8'), 
+                      data=notif_msg, 
                       headers={"Title": title, "Priority": "high"})
         st.toast(f"Push Sent: {title}")
     except Exception as e:
-        st.write(f"Notification Error: {e}")
+        st.error(f"Notification Error: {e}")
 
 # --- PICK TODAY'S DATA ---
 # This is back to the left because it happens AFTER the function is defined
@@ -636,5 +638,6 @@ st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
 st.divider()
 st.info(f"📝 {daily_sentence}")
 st.warning(f"🔥 {daily_quote}")
+
 
 
