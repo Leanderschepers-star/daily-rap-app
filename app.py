@@ -601,6 +601,7 @@ def run_daily_automation(word, sentence, quote):
             data = r.json()
             sha = data['sha']
             existing_text = base64.b64decode(data['content']).decode('utf-8')
+            # The gatekeeper: check if we already buzzed this hour
             if today_stamp not in existing_text:
                 should_send = True
         else:
@@ -608,7 +609,7 @@ def run_daily_automation(word, sentence, quote):
     except:
         should_send = True
 
-    # 2. The Logic Gate (Added 11 just in case based on your titles!)
+    # 2. The Logic Gate
     if current_hour in [0, 10, 11, 20, 21] and should_send:
         topic = "leanders_daily_bars"
         
@@ -626,6 +627,22 @@ def run_daily_automation(word, sentence, quote):
             requests.post(f"https://ntfy.sh/{topic}", 
                           data=full_msg.encode('utf-8'), 
                           headers={"Title": title, "Priority": "high"})
+            
+            # --- THE FIX: Separating the Log from the Content ---
+            # We save the clean message at the top, then a divider, then the memory stamp.
+            new_content = f"{full_msg}\n\n--- LOG HISTORY ---\nLOG: {today_stamp}\n{existing_text}"
+            
+            encoded = base64.b64encode(new_content.encode('utf-8')).decode('utf-8')
+            update_data = {"message": f"Log {title}", "content": encoded}
+            if sha: update_data["sha"] = sha
+            
+            requests.put(url, json=update_data, headers=headers)
+            st.sidebar.success(f"Sent: {title}")
+            
+        except Exception as e:
+            st.sidebar.error(f"Error: {e}")
+    else:
+        st.sidebar.info("Standing by... (Waiting for next drop)")
 
 
 
