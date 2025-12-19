@@ -649,19 +649,34 @@ run_daily_automation(daily_word['word'], daily_sentence, daily_quote)
 # --- 6. THE UI (FRONT END) ---
 st.title("🎤 LEANDER'S DAILY BARS")
 
-# Clean the display strings
-display_sentence = daily_sentence.split("---")[0].split("LOG:")[0].strip()
-display_quote = daily_quote.split("---")[0].split("LOG:")[0].strip()
+# 1. DEFINE A CLEANING FUNCTION
+def clean_text(text):
+    # Splits at the first sign of a divider or log entry and takes only the top part
+    if "---" in text:
+        text = text.split("---")[0]
+    if "LOG:" in text:
+        text = text.split("LOG:")[0]
+    if "WORD:" in text:
+        # If the word itself got saved in the string, skip to the actual sentence
+        parts = text.split("\n\n")
+        if len(parts) > 1:
+            return parts[1].strip()
+    return text.strip()
 
+# 2. APPLY CLEANING
+display_sentence = clean_text(daily_sentence)
+display_quote = clean_text(daily_quote)
+
+# 3. DISPLAY
 st.header(daily_word['word'].upper())
 st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
 st.divider()
 
 st.info(f"📝 {display_sentence}")
 st.warning(f"🔥 {display_quote}")
-
 st.sidebar.divider()
 st.sidebar.caption("v4.0 | Global Timezone Logic (pytz)")
+
 
 
 
