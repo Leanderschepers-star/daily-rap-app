@@ -10,17 +10,45 @@ REPO_NAME = "Leanderschepers-star/daily-rap-app"
 FILE_PATH = "daily_bars.txt"
 
 # 2. Time (Manual Belgium Offset - UTC+1)
-# We use timedelta to force the clock to Belgium time regardless of server location
+# This forces the app to ignore the server's location
 now = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)
 day_of_year = now.timetuple().tm_yday
 current_hour = now.hour
 
-# This line helps you confirm it's working in the sidebar
-st.sidebar.write(f"⏰ Belgian Time: {now.strftime('%H:%M')}")
-# 3. Data (Your big lists of words/sentences go here)
-words = [ ... ] 
-sentences = [ ... ]
-motivation = [ ... ]
+# --- THE AUTOMATION FUNCTION ---
+def run_daily_automation(word, sentence, quote):
+    # This now displays the CORRECT time in the sidebar
+    st.sidebar.header("⏱️ Status")
+    st.sidebar.write(f"Belgian Time: {now.strftime('%H:%M')}")
+    
+    # 1. Memory Stamp (Using Belgian date/hour)
+    today_stamp = f"{now.date()}-{current_hour}"
+
+    url = f"https://api.github.com/repos/{REPO_NAME}/contents/{FILE_PATH}"
+    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    
+    should_send = False
+    sha = None
+    existing_text = ""
+    try:
+        r = requests.get(url, headers=headers)
+        if r.status_code == 200:
+            data = r.json()
+            sha = data['sha']
+            existing_text = base64.b64decode(data['content']).decode('utf-8')
+            # The gatekeeper: check if we already buzzed this hour
+            if today_stamp not in existing_text:
+                should_send = True
+        else:
+            should_send = True 
+    except:
+        should_send = True
+
+    # 2. The Logic Gate (Follows Belgian current_hour!)
+    if current_hour in [0, 10, 11, 20, 21] and should_send:
+        topic = "leanders_daily_bars"
+        
+        if current_hour == 0: title = "Midnight Bars"
 # --- DATA BANK ---
 words = [
     {"word": "Obsession", "rhymes": "Possession, Progression, Lesson"}, {"word": "Titanium", "rhymes": "Cranium, Uranium, Stadium"},
@@ -689,5 +717,6 @@ st.warning(f"🔥 {clean_quote}")
 
 st.sidebar.divider()
 st.sidebar.caption("System Active")
+
 
 
