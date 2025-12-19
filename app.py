@@ -78,7 +78,25 @@ sentences = ["Example sentence."]
 motivation = ["Keep going."]
 
 # --- 5. EXECUTION ---
-daily_word = words[day_of_year % len(words)
+daily_word = words[day_of_year % len(words)]
+daily_sentence = sentences[day_of_year % len(sentences)]
+daily_quote = motivation[day_of_year % len(motivation)]
+
+# Run the automation ONCE
+run_daily_automation(daily_word['word'], daily_sentence, daily_quote)
+
+# --- 6. THE UI ---
+st.title("🎤 LEANDER'S DAILY BARS")
+
+# Cleaning the text for the UI
+display_sentence = daily_sentence.split("---")[0].split("LOG:")[0].strip()
+display_quote = daily_quote.split("---")[0].split("LOG:")[0].strip()
+
+st.header(daily_word['word'].upper())
+st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
+st.divider()
+st.info(f"📝 {display_sentence}")
+st.warning(f"🔥 {display_quote}")
 # --- DATA BANK ---
 words = [
     {"word": "Obsession", "rhymes": "Possession, Progression, Lesson"}, {"word": "Titanium", "rhymes": "Cranium, Uranium, Stadium"},
@@ -747,6 +765,7 @@ st.warning(f"🔥 {clean_quote}")
 
 st.sidebar.divider()
 st.sidebar.caption("System Active")
+
 
 
 
