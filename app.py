@@ -583,12 +583,12 @@ motivation = [
 
 # --- THE AUTOMATION FUNCTION ---
 def run_daily_automation(word, sentence, quote):
-    # This line MUST be here to show the time in the sidebar
+    # Sidebar Status
     st.sidebar.header("⏱️ Status")
     st.sidebar.write(f"Server Time: {now.strftime('%H:%M')}")
     
-    # Create a unique ID for this test
-    today_stamp = f"{datetime.date.today()}-{current_hour}-TESTING"
+    # 1. Permanent Memory Stamp (Official Version)
+    today_stamp = f"{datetime.date.today()}-{current_hour}"
 
     url = f"https://api.github.com/repos/{REPO_NAME}/contents/{FILE_PATH}"
     headers = {"Authorization": f"token {GITHUB_TOKEN}"}
@@ -601,7 +601,7 @@ def run_daily_automation(word, sentence, quote):
             data = r.json()
             sha = data['sha']
             existing_text = base64.b64decode(data['content']).decode('utf-8')
-            # If our TEST stamp isn't in the file yet, we send!
+            # Check if this specific hour has already been logged
             if today_stamp not in existing_text:
                 should_send = True
         else:
@@ -609,27 +609,40 @@ def run_daily_automation(word, sentence, quote):
     except:
         should_send = True
 
-    # TEST TRIGGER: We added '10' so it triggers RIGHT NOW
-    if current_hour in [0, 10] and should_send:
+    # 2. The 3-Hour Logic Gate
+    if current_hour in [0, 10, 21] and should_send:
         topic = "leanders_daily_bars"
-        title = "Test Run Success"
-        full_msg = f"WORD: {word.upper()}\n\n{sentence}\n\n{quote}"
+        
+        # Set titles based on the hour
+        if current_hour == 0:
+            title = "Midnight Bars Unlocked"
+        elif current_hour == 10:
+            title = "Morning Grind"
+        elif current_hour == 21:
+            title = "Evening Reflection"
+        else:
+            title = "Daily Update"
+
+        full_msg = f"WORD: {word.upper()}\n\n{sentence}\n\nMotivation: {quote}"
 
         try:
-            requests.post(f"https://ntfy.sh/{topic}", data=full_msg.encode('utf-8'), headers={"Title": title})
+            # Send Notification to Nothing Phone
+            requests.post(f"https://ntfy.sh/{topic}", 
+                          data=full_msg.encode('utf-8'), 
+                          headers={"Title": title, "Priority": "high"})
             
-            # Log it to GitHub so it STOPS after one go
+            # Log it to GitHub so it stays quiet until the next scheduled hour
             new_content = f"LOG: {today_stamp}\n\n{full_msg}"
             encoded = base64.b64encode(new_content.encode('utf-8')).decode('utf-8')
-            update_data = {"message": "Test Log", "content": encoded}
+            update_data = {"message": "Daily Log Update", "content": encoded}
             if sha: update_data["sha"] = sha
             requests.put(url, json=update_data, headers=headers)
             
-            st.sidebar.success("Notification Sent!")
-        except Exception as e:
-            st.sidebar.error(f"Error: {e}")
+            st.sidebar.success(f"Sent: {title}")
+        except:
+            pass
     else:
-        st.sidebar.info("Standing by... (Already sent for this hour)")
+        st.sidebar.info("Standing by... (Waiting for next drop)")
 
 # --- 1. PICK TODAY'S DATA ---
 daily_word = words[day_of_year % len(words)]
@@ -645,6 +658,7 @@ st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
 st.divider()
 st.info(f"📝 {daily_sentence}")
 st.warning(f"🔥 {daily_quote}")
+
 
 
 
