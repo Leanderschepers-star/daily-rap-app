@@ -604,10 +604,10 @@ def run_daily_automation(word, sentence, quote):
     st.sidebar.write(f"Server Time (BE): {now.strftime('%H:%M')}")
 
     if current_hour == 0:
-        title = "Midnight Bars Unlocked 🔓"
+        title = "Midnight Bars Unlocked"
         notif_msg = f"New Word: {word.upper()}\n{sentence}"
     elif current_hour == 10:
-        title = "Morning Grind ☕"
+        title = "Morning Grind"
         notif_msg = quote
     else:
         return 
@@ -636,4 +636,5 @@ st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
 st.divider()
 st.info(f"📝 {daily_sentence}")
 st.warning(f"🔥 {daily_quote}")
+
 
