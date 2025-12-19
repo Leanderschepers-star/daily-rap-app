@@ -583,17 +583,60 @@ motivation = [
 
 # --- THE AUTOMATION FUNCTION ---
 def run_daily_automation(word, sentence, quote):
-    # (Keep all your logic inside here exactly as you pasted it...)
-    st.sidebar.write(f"Server Time (BE): {now.strftime('%H:%M')}")
-    # ... [rest of your function code] ...
-    # (Make sure the 'try/except' for the notification is indented inside here)
+    # This line MUST be here to show the time in the sidebar
+    st.sidebar.header("⏱️ Status")
+    st.sidebar.write(f"Server Time: {now.strftime('%H:%M')}")
+    
+    # Create a unique ID for this test
+    today_stamp = f"{datetime.date.today()}-{current_hour}-TESTING"
 
-# --- 1. PICK TODAY'S DATA (This must be outside the function) ---
+    url = f"https://api.github.com/repos/{REPO_NAME}/contents/{FILE_PATH}"
+    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    
+    should_send = False
+    sha = None
+    try:
+        r = requests.get(url, headers=headers)
+        if r.status_code == 200:
+            data = r.json()
+            sha = data['sha']
+            existing_text = base64.b64decode(data['content']).decode('utf-8')
+            # If our TEST stamp isn't in the file yet, we send!
+            if today_stamp not in existing_text:
+                should_send = True
+        else:
+            should_send = True 
+    except:
+        should_send = True
+
+    # TEST TRIGGER: We added '10' so it triggers RIGHT NOW
+    if current_hour in [0, 10] and should_send:
+        topic = "leanders_daily_bars"
+        title = "Test Run Success"
+        full_msg = f"WORD: {word.upper()}\n\n{sentence}\n\n{quote}"
+
+        try:
+            requests.post(f"https://ntfy.sh/{topic}", data=full_msg.encode('utf-8'), headers={"Title": title})
+            
+            # Log it to GitHub so it STOPS after one go
+            new_content = f"LOG: {today_stamp}\n\n{full_msg}"
+            encoded = base64.b64encode(new_content.encode('utf-8')).decode('utf-8')
+            update_data = {"message": "Test Log", "content": encoded}
+            if sha: update_data["sha"] = sha
+            requests.put(url, json=update_data, headers=headers)
+            
+            st.sidebar.success("Notification Sent!")
+        except Exception as e:
+            st.sidebar.error(f"Error: {e}")
+    else:
+        st.sidebar.info("Standing by... (Already sent for this hour)")
+
+# --- 1. PICK TODAY'S DATA ---
 daily_word = words[day_of_year % len(words)]
 daily_sentence = sentences[day_of_year % len(sentences)]
 daily_quote = motivation[day_of_year % len(motivation)]
 
-# --- 2. THE ACTUAL TRIGGER (This is what makes it run!) ---
+# --- 2. THE ACTUAL TRIGGER ---
 run_daily_automation(daily_word['word'], daily_sentence, daily_quote)
 
 # --- 3. THE UI ---
