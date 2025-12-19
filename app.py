@@ -9,20 +9,20 @@ GITHUB_TOKEN = st.secrets["GITHUB_TOKEN"]
 REPO_NAME = "Leanderschepers-star/daily-rap-app"
 FILE_PATH = "daily_bars.txt"
 
-# 2. Time (Manual Belgium Offset - UTC+1)
-# This forces the app to ignore the server's location
-now = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)
-day_of_year = now.timetuple().tm_yday
-current_hour = now.hour
+# 2. Time (FORCE BELGIUM OFFSET - UTC+1)
+# This is the single source of truth for the whole app
+be_now = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)
+current_hour = be_now.hour
+day_of_year = be_now.timetuple().tm_yday
 
 # --- THE AUTOMATION FUNCTION ---
 def run_daily_automation(word, sentence, quote):
-    # This now displays the CORRECT time in the sidebar
+    # Sidebar cleanup
     st.sidebar.header("⏱️ Status")
-    st.sidebar.write(f"Belgian Time: {now.strftime('%H:%M')}")
+    st.sidebar.write(f"Belgian Time: {be_now.strftime('%H:%M')}")
     
-    # 1. Memory Stamp (Using Belgian date/hour)
-    today_stamp = f"{now.date()}-{current_hour}"
+    # 1. Memory Stamp (Using be_now)
+    today_stamp = f"{be_now.date()}-{current_hour}"
 
     url = f"https://api.github.com/repos/{REPO_NAME}/contents/{FILE_PATH}"
     headers = {"Authorization": f"token {GITHUB_TOKEN}"}
@@ -36,7 +36,6 @@ def run_daily_automation(word, sentence, quote):
             data = r.json()
             sha = data['sha']
             existing_text = base64.b64decode(data['content']).decode('utf-8')
-            # The gatekeeper: check if we already buzzed this hour
             if today_stamp not in existing_text:
                 should_send = True
         else:
@@ -44,11 +43,67 @@ def run_daily_automation(word, sentence, quote):
     except:
         should_send = True
 
-    # 2. The Logic Gate (Follows Belgian current_hour!)
+    # 2. The Logic Gate (Hours: 00, 10, 11, 20, 21)
     if current_hour in [0, 10, 11, 20, 21] and should_send:
         topic = "leanders_daily_bars"
         
+        # Dynamic Titles
         if current_hour == 0: title = "Midnight Bars"
+        elif current_hour == 10: title = "Morning Grind"
+        elif current_hour == 11: title = "You Got This"
+        elif current_hour == 20: title = "Evening Session"
+        elif current_hour == 21: title = "Last Chance"
+        else: title = "Daily Update"
+
+        full_msg = f"WORD: {word.upper()}\n\n{sentence}\n\nMotivation: {quote}"
+
+        try:
+            # Send Notification
+            requests.post(f"https://ntfy.sh/{topic}", 
+                          data=full_msg.encode('utf-8'), 
+                          headers={"Title": title, "Priority": "high"})
+            
+            # Update GitHub (Content TOP, Log BOTTOM)
+            new_content = f"WORD: {word.upper()}\n{sentence}\n{quote}\n\n--- LOG HISTORY ---\nLOG: {today_stamp}\n{existing_text}"
+            
+            encoded = base64.b64encode(new_content.encode('utf-8')).decode('utf-8')
+            update_data = {"message": f"Log {title}", "content": encoded}
+            if sha: update_data["sha"] = sha
+            requests.put(url, json=update_data, headers=headers)
+            
+            st.sidebar.success(f"Sent: {title}")
+        except:
+            st.sidebar.error("Failed to update log.")
+    else:
+        st.sidebar.info("Standing by for next drop...")
+
+# 3. Data (Add your lists here)
+words = [
+    {"word": "Example", "rhymes": "Sample, Ample"}
+]
+sentences = ["Example sentence here."]
+motivation = ["Keep pushing."]
+
+# --- 4. EXECUTION ---
+daily_word = words[day_of_year % len(words)]
+daily_sentence = sentences[day_of_year % len(sentences)]
+daily_quote = motivation[day_of_year % len(motivation)]
+
+# Trigger
+run_daily_automation(daily_word['word'], daily_sentence, daily_quote)
+
+# --- 5. THE UI (CLEAN) ---
+st.title("🎤 LEANDER'S DAILY BARS")
+
+# CLEANING: Filters out the LOG stamps from the UI
+clean_sentence = daily_sentence.split("---")[0].split("LOG:")[0].strip()
+clean_quote = daily_quote.split("---")[0].split("LOG:")[0].strip()
+
+st.header(daily_word['word'].upper())
+st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
+st.divider()
+st.info(f"📝 {clean_sentence}")
+st.warning(f"🔥 {clean_quote}")
 # --- DATA BANK ---
 words = [
     {"word": "Obsession", "rhymes": "Possession, Progression, Lesson"}, {"word": "Titanium", "rhymes": "Cranium, Uranium, Stadium"},
@@ -717,6 +772,7 @@ st.warning(f"🔥 {clean_quote}")
 
 st.sidebar.divider()
 st.sidebar.caption("System Active")
+
 
 
 
