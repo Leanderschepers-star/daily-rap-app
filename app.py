@@ -649,33 +649,45 @@ run_daily_automation(daily_word['word'], daily_sentence, daily_quote)
 # --- 6. THE UI (FRONT END) ---
 st.title("🎤 LEANDER'S DAILY BARS")
 
-# 1. DEFINE A CLEANING FUNCTION
-def clean_text(text):
-    # Splits at the first sign of a divider or log entry and takes only the top part
-    if "---" in text:
-        text = text.split("---")[0]
-    if "LOG:" in text:
-        text = text.split("LOG:")[0]
-    if "WORD:" in text:
-        # If the word itself got saved in the string, skip to the actual sentence
-        parts = text.split("\n\n")
-        if len(parts) > 1:
-            return parts[1].strip()
+# 1. SIMPLE & SAFE CLEANING FUNCTION
+def clean_text_safe(text):
+    if not text:
+        return ""
+    # Just cut off anything after the log divider
+    text = text.split("---")[0]
+    text = text.split("LOG:")[0]
+    # Remove the "WORD:" or "Motivation:" labels if they exist in the string
+    text = text.replace("WORD:", "").replace("Motivation:", "")
     return text.strip()
 
 # 2. APPLY CLEANING
-display_sentence = clean_text(daily_sentence)
-display_quote = clean_text(daily_quote)
+try:
+    display_sentence = clean_text_safe(daily_sentence)
+    display_quote = clean_text_safe(daily_quote)
+    display_word = daily_word['word'] if isinstance(daily_word, dict) else daily_word
+except Exception:
+    # If anything goes wrong, just show the raw text so the screen isn't black
+    display_sentence = daily_sentence
+    display_quote = daily_quote
+    display_word = "Check Data"
 
-# 3. DISPLAY
-st.header(daily_word['word'].upper())
-st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
+# 3. DISPLAY THE WIDGETS
+# These lines create the white/colored boxes
+st.header(str(display_word).upper())
+
+# Only show rhymes if they exist
+if isinstance(daily_word, dict) and 'rhymes' in daily_word:
+    st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
+
 st.divider()
 
+# The Info and Warning boxes (The "Widgets")
 st.info(f"📝 {display_sentence}")
 st.warning(f"🔥 {display_quote}")
+
 st.sidebar.divider()
-st.sidebar.caption("v4.0 | Global Timezone Logic (pytz)")
+st.sidebar.caption("v1.4 | Global Timezone Logic (pytz)")
+
 
 
 
