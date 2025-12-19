@@ -78,7 +78,7 @@ sentences = ["Example sentence."]
 motivation = ["Keep going."]
 
 # --- 5. EXECUTION ---
-daily_word = words[day_of_year % len(words
+daily_word = words[day_of_year % len(words)
 # --- DATA BANK ---
 words = [
     {"word": "Obsession", "rhymes": "Possession, Progression, Lesson"}, {"word": "Titanium", "rhymes": "Cranium, Uranium, Stadium"},
@@ -747,6 +747,7 @@ st.warning(f"🔥 {clean_quote}")
 
 st.sidebar.divider()
 st.sidebar.caption("System Active")
+
 
 
 
