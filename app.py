@@ -3,19 +3,20 @@ import random
 import datetime
 import requests
 import base64
-import pytz 
 
 # 1. Config
 GITHUB_TOKEN = st.secrets["GITHUB_TOKEN"] 
 REPO_NAME = "Leanderschepers-star/daily-rap-app"
 FILE_PATH = "daily_bars.txt"
 
-# 2. Time
-belgium_tz = pytz.timezone('Europe/Brussels')
-now = datetime.datetime.now(belgium_tz)
+# 2. Time (Manual Belgium Offset - UTC+1)
+# We use timedelta to force the clock to Belgium time regardless of server location
+now = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)
 day_of_year = now.timetuple().tm_yday
 current_hour = now.hour
 
+# This line helps you confirm it's working in the sidebar
+st.sidebar.write(f"⏰ Belgian Time: {now.strftime('%H:%M')}")
 # 3. Data (Your big lists of words/sentences go here)
 words = [ ... ] 
 sentences = [ ... ]
@@ -688,4 +689,5 @@ st.warning(f"🔥 {clean_quote}")
 
 st.sidebar.divider()
 st.sidebar.caption("System Active")
+
 
