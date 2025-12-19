@@ -11,7 +11,6 @@ REPO_NAME = "Leanderschepers-star/daily-rap-app"
 FILE_PATH = "daily_bars.txt"
 
 # --- 2. TIME (WORLD-READY WITH PYTZ) ---
-# This automatically handles Summer/Winter time changes
 belgium_tz = pytz.timezone('Europe/Brussels')
 be_now = datetime.datetime.now(belgium_tz)
 current_hour = be_now.hour
@@ -30,25 +29,26 @@ def run_daily_automation(word, sentence, quote):
     should_send = False
     sha = None
     existing_text = ""
-   try:
-            # Send the push notification
-            requests.post(f"https://ntfy.sh/{topic}", 
-                          data=full_msg.encode('utf-8'), 
-                          headers={"Title": title, "Priority": "high"})
-            
-            # Save the log to GitHub to prevent duplicate sends
-            new_content = f"WORD: {word.upper()}\n{sentence}\n{quote}\n\n--- LOG HISTORY ---\nLOG: {today_stamp}\n{existing_text}"
-            encoded = base64.b64encode(new_content.encode('utf-8')).decode('utf-8')
-            update_data = {"message": f"Log {title}", "content": encoded}
-            if sha: update_data["sha"] = sha
-            requests.put(url, json=update_data, headers=headers)
-            st.sidebar.success(f"Sent: {title}")
-        except:
-            st.sidebar.error("Notification sent, but log failed.")
-    # TRIGGER LOGIC: Checks if it's one of your drop hours
-    if current_hour in [0, 10, 11, 20, 21] and should_send:
+    
+    # 1. Check if we already updated this hour
+    try:
+        r = requests.get(url, headers=headers)
+        if r.status_code == 200:
+            data = r.json()
+            sha = data['sha']
+            existing_text = base64.b64decode(data['content']).decode('utf-8')
+            if today_stamp not in existing_text:
+                should_send = True
+        else:
+            should_send = True 
+    except:
+        should_send = True
+
+    # 2. TRIGGER LOGIC: Checks if it's one of your drop hours
+    if current_hour in [0, 10, 11, 20, 21, 22] and should_send:
         topic = "leanders_daily_bars"
         
+        # Determine Title
         if current_hour == 0: title = "Midnight Bars"
         elif current_hour == 10: title = "Morning Grind"
         elif current_hour == 11: title = "You Got This"
@@ -64,15 +64,18 @@ def run_daily_automation(word, sentence, quote):
                           data=full_msg.encode('utf-8'), 
                           headers={"Title": title, "Priority": "high"})
             
-            # Save the log to GitHub to prevent duplicate sends
-            new_content = f"WORD: {word.upper()}\n{sentence}\n{quote}\n\n--- LOG HISTORY ---\nLOG: {today_stamp}\n{existing_text}"
+            # OVERWRITE FIX: We only save the new content + stamp. 
+            # We do NOT add existing_text back in, so logs are deleted.
+            new_content = f"{word.upper()} | {sentence} | {quote} | {today_stamp}"
+            
             encoded = base64.b64encode(new_content.encode('utf-8')).decode('utf-8')
-            update_data = {"message": f"Log {title}", "content": encoded}
+            update_data = {"message": f"Clean Update {title}", "content": encoded}
             if sha: update_data["sha"] = sha
+            
             requests.put(url, json=update_data, headers=headers)
-            st.sidebar.success(f"Sent: {title}")
+            st.sidebar.success(f"Sent & Cleaned: {title}")
         except:
-            st.sidebar.error("Notification sent, but log failed.")
+            st.sidebar.error("Notification sent, but GitHub update failed.")
     else:
         st.sidebar.info("Standing by for next drop...")
 
@@ -696,6 +699,7 @@ st.divider()
 st.write("KWGT_DATA_START")
 st.code(f"{display_word} | {display_sentence} | {display_quote}")
 st.write("KWGT_DATA_END")
+
 
 
 
