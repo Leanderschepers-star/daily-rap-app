@@ -646,6 +646,26 @@ def run_daily_automation(word, sentence, quote):
 
 
 
+# --- 3. THE UI (BULLETPROOF VERSION) ---
+st.title("🎤 LEANDER'S DAILY BARS")
+
+# 1. Show the Word
+word_text = daily_word['word'].upper()
+st.header(word_text)
+st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
+
+st.divider()
+
+# 2. Show the Sentence (The Split ensures no LOG text appears)
+clean_sentence = daily_sentence.split("---")[0].split("LOG:")[0].strip()
+st.info(f"📝 {clean_sentence}")
+
+# 3. Show the Quote
+clean_quote = daily_quote.split("---")[0].split("LOG:")[0].strip()
+st.warning(f"🔥 {clean_quote}")
+
+st.sidebar.divider()
+st.sidebar.caption("App Version: 2.0 (Clean UI)")
 
 
 
