@@ -688,15 +688,12 @@ st.warning(f"🔥 {display_quote}")
 st.sidebar.divider()
 st.sidebar.caption("v1.4 | Global Timezone Logic (pytz)")
 
-# --- 7. HIDDEN CLEAN OUTPUT FOR KWGT ---
-# This creates a tiny hidden section that KWGT can find easily
-st.write("---")
-st.caption("RAW_START")
-st.write(f"CLEAN_WORD:{display_word}")
-st.write(f"CLEAN_SENTENCE:{display_sentence}")
-st.write(f"CLEAN_QUOTE:{display_quote}")
-st.caption("RAW_END")
-
+# --- 7. ONE-LINE OUTPUT FOR KWGT ---
+# This puts everything in one clean line separated by |
+st.divider()
+st.write("KWGT_DATA_START")
+st.code(f"{display_word} | {display_sentence} | {display_quote}")
+st.write("KWGT_DATA_END")
 
 
 
