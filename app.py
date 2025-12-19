@@ -615,7 +615,7 @@ def run_daily_automation(word, sentence, quote):
         
         # Set titles based on the hour
         if current_hour == 0:
-            title = "Midnight Bars Unlocked"
+            title = "Midnight Bars"
         elif current_hour == 10:
             title = "Morning Grind"
         elif current_hour == 21:
@@ -658,6 +658,7 @@ st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
 st.divider()
 st.info(f"📝 {daily_sentence}")
 st.warning(f"🔥 {daily_quote}")
+
 
 
 
