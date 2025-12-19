@@ -30,19 +30,21 @@ def run_daily_automation(word, sentence, quote):
     should_send = False
     sha = None
     existing_text = ""
-    try:
-        r = requests.get(url, headers=headers)
-        if r.status_code == 200:
-            data = r.json()
-            sha = data['sha']
-            existing_text = base64.b64decode(data['content']).decode('utf-8')
-            if today_stamp not in existing_text:
-                should_send = True
-        else:
-            should_send = True 
-    except:
-        should_send = True
-
+   try:
+            # Send the push notification
+            requests.post(f"https://ntfy.sh/{topic}", 
+                          data=full_msg.encode('utf-8'), 
+                          headers={"Title": title, "Priority": "high"})
+            
+            # Save the log to GitHub to prevent duplicate sends
+            new_content = f"WORD: {word.upper()}\n{sentence}\n{quote}\n\n--- LOG HISTORY ---\nLOG: {today_stamp}\n{existing_text}"
+            encoded = base64.b64encode(new_content.encode('utf-8')).decode('utf-8')
+            update_data = {"message": f"Log {title}", "content": encoded}
+            if sha: update_data["sha"] = sha
+            requests.put(url, json=update_data, headers=headers)
+            st.sidebar.success(f"Sent: {title}")
+        except:
+            st.sidebar.error("Notification sent, but log failed.")
     # TRIGGER LOGIC: Checks if it's one of your drop hours
     if current_hour in [0, 10, 11, 20, 21] and should_send:
         topic = "leanders_daily_bars"
@@ -694,6 +696,7 @@ st.divider()
 st.write("KWGT_DATA_START")
 st.code(f"{display_word} | {display_sentence} | {display_quote}")
 st.write("KWGT_DATA_END")
+
 
 
 
