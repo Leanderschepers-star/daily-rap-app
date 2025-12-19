@@ -64,9 +64,14 @@ def run_daily_automation(word, sentence, quote):
                           data=full_msg.encode('utf-8'), 
                           headers={"Title": title, "Priority": "high"})
             
-            # OVERWRITE FIX: We only save the new content + stamp. 
-            # We do NOT add existing_text back in, so logs are deleted.
-            new_content = f"{word.upper()} | {sentence} | {quote} | {today_stamp}"
+# This version uses \n to create new lines directly in the text file
+            new_content = f"WORD: {word.upper()}\nSentence: {sentence}\nMotivation: {quote}\n{today_stamp}"
+            
+            encoded = base64.b64encode(new_content.encode('utf-8')).decode('utf-8')
+            update_data = {"message": f"Layout Update {title}", "content": encoded}
+            if sha: update_data["sha"] = sha
+            
+            requests.put(url, json=update_data, headers=headers)
             
             encoded = base64.b64encode(new_content.encode('utf-8')).decode('utf-8')
             update_data = {"message": f"Clean Update {title}", "content": encoded}
@@ -699,6 +704,7 @@ st.divider()
 st.write("KWGT_DATA_START")
 st.code(f"{display_word} | {display_sentence} | {display_quote}")
 st.write("KWGT_DATA_END")
+
 
 
 
