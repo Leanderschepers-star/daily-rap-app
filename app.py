@@ -743,7 +743,7 @@ if st.sidebar.button("🚀 Force Test Notification"):
             headers={
                 "Title": "Manual Studio Trigger", 
                 "Priority": "high",
-                "Click": "https://daily-rap-history.streamlit.app/",
+                "Click": "https://daily-rap-history-zk8ax9vc2qssc5phovsmpn.streamlit.app",
                 "Tags": "writing_hand,microphone,rocket"
             }
         )
@@ -761,6 +761,7 @@ st.divider()
 st.write("KWGT_DATA_START")
 st.code(f"{display_word} | {display_sentence} | {display_quote}")
 st.write("KWGT_DATA_END")
+
 
 
 
