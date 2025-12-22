@@ -53,7 +53,7 @@ def run_daily_automation(word, sentence, quote):
         elif current_hour == 10: title = "Morning Grind"
         elif current_hour == 11: title = "You Got This"
         elif current_hour == 20: title = "Evening Session"
-        elif current_hour == 21: title = "Last Chance"
+        elif current_hour == 21: title = "Closing In On The End"
         elif current_hour == 22: title = "Final Call" 
         elif current_hour == 23: title = "test"
         else: title = "Daily Update"
@@ -738,6 +738,7 @@ st.divider()
 st.write("KWGT_DATA_START")
 st.code(f"{display_word} | {display_sentence} | {display_quote}")
 st.write("KWGT_DATA_END")
+
 
 
 
