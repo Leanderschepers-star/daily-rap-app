@@ -697,7 +697,41 @@ st.info(f"📝 {display_sentence}")
 st.warning(f"🔥 {display_quote}")
 
 st.sidebar.divider()
-st.sidebar.caption("v1.4 | Global Timezone Logic (pytz)")
+
+# --- 4. THE CONNECTION CENTER ---
+st.sidebar.title("🔗 Connections")
+
+# Link to the Journal
+st.sidebar.markdown("[➡️ Open Rap Journal](https://daily-rap-history.streamlit.app/)")
+
+# Check if today is done (Status Check)
+today_str = be_now.strftime('%d/%m/%Y')
+
+def check_journal_done(date_to_check):
+    """Peeks at the Journal Repo to see if you wrote bars yet."""
+    JOURNAL_REPO = "Leanderschepers-star/daily-rap-history"
+    url = f"https://api.github.com/repos/{JOURNAL_REPO}/contents/history.txt"
+    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    try:
+        r = requests.get(url, headers=headers)
+        if r.status_code == 200:
+            content = base64.b64decode(r.json()['content']).decode('utf-8')
+            # If the date is in the file and it doesn't say "No lyrics recorded"
+            if f"DATE: {date_to_check}" in content:
+                # Splitting to look specifically at the text for today
+                day_entry = content.split(f"DATE: {date_to_check}")[1].split("------------------------------")[0]
+                if "(No lyrics recorded)" not in day_entry and "LYRICS:" in day_entry:
+                    return "✅ Done"
+        return "❌ Pending"
+    except:
+        return "⏳ Syncing..."
+
+# Display the status in the sidebar
+status = check_journal_done(today_str)
+st.sidebar.metric("Journal Status", status)
+
+st.sidebar.divider()
+st.sidebar.caption("v1.5 | Global Timezone Logic (pytz)")
 
 # --- 7. ONE-LINE OUTPUT FOR KWGT ---
 # This puts everything in one clean line separated by |
@@ -705,6 +739,7 @@ st.divider()
 st.write("KWGT_DATA_START")
 st.code(f"{display_word} | {display_sentence} | {display_quote}")
 st.write("KWGT_DATA_END")
+
 
 
 
