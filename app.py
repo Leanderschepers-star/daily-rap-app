@@ -55,6 +55,7 @@ def run_daily_automation(word, sentence, quote):
         elif current_hour == 20: title = "Evening Session"
         elif current_hour == 21: title = "Last Chance"
         elif current_hour == 22: title = "Final Call" # Changed 23 to 22 here
+        elif current_hour == 23: title = "test"
         else: title = "Daily Update"
 
         full_msg = f"WORD: {word.upper()}\n\n{sentence}\n\nMotivation: {quote}"
@@ -729,6 +730,7 @@ st.divider()
 st.write("KWGT_DATA_START")
 st.code(f"{display_word} | {display_sentence} | {display_quote}")
 st.write("KWGT_DATA_END")
+
 
 
 
