@@ -83,9 +83,6 @@ st.sidebar.success(f"Notification Sent with Link! Status: {title}")
         st.sidebar.info("Standing by for next drop...")
 
 # --- 4. DATA BANK (ADD YOUR FULL LISTS HERE) ---
-# Make sure this is all the way to the left (no spaces before 'words')
-words = [
-# --- 4. DATA BANK (ADD YOUR FULL LISTS HERE) ---
 words = [
     {"word": "Obsession", "rhymes": "Possession, Progression, Lesson"}, {"word": "Titanium", "rhymes": "Cranium, Uranium, Stadium"},
     {"word": "Mirage", "rhymes": "Garage, Collage, Sabotage"}, {"word": "Renaissance", "rhymes": "Response, Sconce, Nonce"},
@@ -739,6 +736,7 @@ st.divider()
 st.write("KWGT_DATA_START")
 st.code(f"{display_word} | {display_sentence} | {display_quote}")
 st.write("KWGT_DATA_END")
+
 
 
 
