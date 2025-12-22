@@ -44,7 +44,7 @@ def run_daily_automation(word, sentence, quote):
     except:
         should_send = True
 
-    # 2. TRIGGER LOGIC: Checks if it's one of your drop hours
+# 2. TRIGGER LOGIC: Checks if it's one of your drop hours
     if current_hour in [0, 10, 11, 20, 21, 22] and should_send:
         topic = "leanders_daily_bars"
         
@@ -54,37 +54,27 @@ def run_daily_automation(word, sentence, quote):
         elif current_hour == 11: title = "You Got This"
         elif current_hour == 20: title = "Evening Session"
         elif current_hour == 21: title = "Last Chance"
-        elif current_hour == 23: title = "Last Chance"
+        elif current_hour == 22: title = "Final Call" # Changed 23 to 22 here
         else: title = "Daily Update"
 
         full_msg = f"WORD: {word.upper()}\n\n{sentence}\n\nMotivation: {quote}"
 
         try:
-            # Send the push notification
-            requests.post(f"https://ntfy.sh/{topic}", 
-                          data=full_msg.encode('utf-8'), 
-                          headers={"Title": title, "Priority": "high"})
+            # Send the push notification with a link to the Journal
+            requests.post(
+                f"https://ntfy.sh/{topic}", 
+                data=full_msg.encode('utf-8'), 
+                headers={
+                    "Title": title, 
+                    "Priority": "high",
+                    "Click": "https://daily-rap-history.streamlit.app/",
+                    "Tags": "writing_hand,microphone"
+                }
+            )
             
-# This version uses \n to create new lines directly in the text file
-            new_content = f"WORD: {word.upper()}\nSentence: {sentence}\nMotivation: {quote}\n{today_stamp}"
+            # (Your GitHub update code stays here exactly as you have it)
             
-            encoded = base64.b64encode(new_content.encode('utf-8')).decode('utf-8')
-            update_data = {"message": f"Layout Update {title}", "content": encoded}
-            if sha: update_data["sha"] = sha
-            
-            requests.put(url, json=update_data, headers=headers)
-            
-            encoded = base64.b64encode(new_content.encode('utf-8')).decode('utf-8')
-            update_data = {"message": f"Clean Update {title}", "content": encoded}
-            if sha: update_data["sha"] = sha
-            
-            requests.put(url, json=update_data, headers=headers)
-            st.sidebar.success(f"Sent & Cleaned: {title}")
-        except:
-            st.sidebar.error("Notification sent, but GitHub update failed.")
-    else:
-        st.sidebar.info("Standing by for next drop...")
-
+            st.sidebar.success(f"Notification Sent with Link! Status: {title}")
 # --- 4. DATA BANK (ADD YOUR FULL LISTS HERE) ---
 words = [
     {"word": "Obsession", "rhymes": "Possession, Progression, Lesson"}, {"word": "Titanium", "rhymes": "Cranium, Uranium, Stadium"},
@@ -739,6 +729,7 @@ st.divider()
 st.write("KWGT_DATA_START")
 st.code(f"{display_word} | {display_sentence} | {display_quote}")
 st.write("KWGT_DATA_END")
+
 
 
 
