@@ -702,7 +702,7 @@ st.sidebar.divider()
 st.sidebar.title("🔗 Connections")
 
 # Link to the Journal
-st.sidebar.markdown("[➡️ Open Rap Journal](https://daily-rap-history.streamlit.app/)")
+st.sidebar.markdown("[➡️ Open Rap Journal](https://daily-rap-history-zk8ax9vc2qssc5phovsmpn.streamlit.app)")
 
 # Check if today is done (Status Check)
 today_str = be_now.strftime('%d/%m/%Y')
@@ -739,6 +739,7 @@ st.divider()
 st.write("KWGT_DATA_START")
 st.code(f"{display_word} | {display_sentence} | {display_quote}")
 st.write("KWGT_DATA_END")
+
 
 
 
