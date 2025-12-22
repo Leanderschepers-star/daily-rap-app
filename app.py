@@ -730,6 +730,30 @@ status = check_journal_done(today_str)
 st.sidebar.metric("Journal Status", status)
 
 st.sidebar.divider()
+
+# --- THE FORCE BUTTON ---
+st.sidebar.subheader("🛠️ Debugging")
+if st.sidebar.button("🚀 Force Test Notification"):
+    try:
+        topic = "leanders_daily_bars"
+        test_msg = f"TEST RUN\nWORD: {display_word.upper()}\nPrompt: {display_sentence}"
+        
+        requests.post(
+            f"https://ntfy.sh/{topic}", 
+            data=test_msg.encode('utf-8'), 
+            headers={
+                "Title": "🚨 Manual Studio Trigger", 
+                "Priority": "high",
+                "Click": "https://daily-rap-history.streamlit.app/",
+                "Tags": "writing_hand,microphone,rocket"
+            }
+        )
+        st.sidebar.success("Test Sent! Tap the notification to test the link.")
+    except Exception as e:
+        st.sidebar.error(f"Test failed: {e}")
+
+st.sidebar.divider()
+st.sidebar.caption("v1.5 | Global Timezone Logic (pytz)")
 st.sidebar.caption("v1.5 | Global Timezone Logic (pytz)")
 
 # --- 7. ONE-LINE OUTPUT FOR KWGT ---
@@ -738,6 +762,7 @@ st.divider()
 st.write("KWGT_DATA_START")
 st.code(f"{display_word} | {display_sentence} | {display_quote}")
 st.write("KWGT_DATA_END")
+
 
 
 
