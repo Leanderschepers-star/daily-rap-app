@@ -753,7 +753,6 @@ if st.sidebar.button("🚀 Force Test Notification"):
 
 st.sidebar.divider()
 st.sidebar.caption("v1.5 | Global Timezone Logic (pytz)")
-st.sidebar.caption("v1.5 | Global Timezone Logic (pytz)")
 
 # --- 7. ONE-LINE OUTPUT FOR KWGT ---
 # This puts everything in one clean line separated by |
@@ -761,6 +760,7 @@ st.divider()
 st.write("KWGT_DATA_START")
 st.code(f"{display_word} | {display_sentence} | {display_quote}")
 st.write("KWGT_DATA_END")
+
 
 
 
