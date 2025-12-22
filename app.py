@@ -55,7 +55,6 @@ def run_daily_automation(word, sentence, quote):
         elif current_hour == 20: title = "Evening Session"
         elif current_hour == 21: title = "Closing In On The End"
         elif current_hour == 22: title = "Final Call" 
-        elif current_hour == 23: title = "test"
         else: title = "Daily Update"
 
         full_msg = f"WORD: {word.upper()}\n\n{sentence}\n\nMotivation: {quote}"
@@ -742,7 +741,7 @@ if st.sidebar.button("🚀 Force Test Notification"):
             f"https://ntfy.sh/{topic}", 
             data=test_msg.encode('utf-8'), 
             headers={
-                "Title": "🚨 Manual Studio Trigger", 
+                "Title": "Manual Studio Trigger", 
                 "Priority": "high",
                 "Click": "https://daily-rap-history.streamlit.app/",
                 "Tags": "writing_hand,microphone,rocket"
@@ -762,6 +761,7 @@ st.divider()
 st.write("KWGT_DATA_START")
 st.code(f"{display_word} | {display_sentence} | {display_quote}")
 st.write("KWGT_DATA_END")
+
 
 
 
