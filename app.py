@@ -54,7 +54,7 @@ def run_daily_automation(word, sentence, quote):
         elif current_hour == 11: title = "You Got This"
         elif current_hour == 20: title = "Evening Session"
         elif current_hour == 21: title = "Last Chance"
-        elif current_hour == 22: title = "Final Call" # Changed 23 to 22 here
+        elif current_hour == 22: title = "Final Call" 
         elif current_hour == 23: title = "test"
         else: title = "Daily Update"
 
@@ -75,7 +75,16 @@ def run_daily_automation(word, sentence, quote):
             
             # (Your GitHub update code stays here exactly as you have it)
             
-            st.sidebar.success(f"Notification Sent with Link! Status: {title}")
+st.sidebar.success(f"Notification Sent with Link! Status: {title}")
+            
+        except Exception as e:
+            st.sidebar.error(f"Error: {e}")
+    else:
+        st.sidebar.info("Standing by for next drop...")
+
+# --- 4. DATA BANK (ADD YOUR FULL LISTS HERE) ---
+# Make sure this is all the way to the left (no spaces before 'words')
+words = [
 # --- 4. DATA BANK (ADD YOUR FULL LISTS HERE) ---
 words = [
     {"word": "Obsession", "rhymes": "Possession, Progression, Lesson"}, {"word": "Titanium", "rhymes": "Cranium, Uranium, Stadium"},
@@ -730,6 +739,7 @@ st.divider()
 st.write("KWGT_DATA_START")
 st.code(f"{display_word} | {display_sentence} | {display_quote}")
 st.write("KWGT_DATA_END")
+
 
 
 
