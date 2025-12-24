@@ -1,11 +1,7 @@
 import streamlit as st
-import random
-import datetime
-import requests
-import base64
-import pytz
+import datetime, requests, base64, pytz, random, time
 
-# --- 1. CONFIG ---
+# --- 1. CONFIG & SECRETS ---
 try:
     GITHUB_TOKEN = st.secrets["GITHUB_TOKEN"] 
 except:
@@ -15,7 +11,7 @@ except:
 REPO_NAME = "Leanderschepers-star/daily-rap-app"
 FILE_PATH = "daily_bars.txt"
 
-# --- 2. TIME ---
+# --- 2. TIME & DATA SETUP ---
 belgium_tz = pytz.timezone('Europe/Brussels')
 be_now = datetime.datetime.now(belgium_tz)
 current_hour = be_now.hour
@@ -23,63 +19,76 @@ day_of_year = be_now.timetuple().tm_yday
 
 # --- 3. HELPER: FIREWALL-SAFE REQUEST ---
 def safe_github_get(url, headers):
-    """Prevents messy HTML errors when network is blocked by firewalls."""
     try:
         r = requests.get(url, headers=headers, timeout=10)
-        # If firewall intercepts, it returns HTML with <noscript> or "Fireware"
         if "<noscript>" in r.text or "Fireware" in r.text:
             return "BLOCKED"
         return r
     except:
         return None
 
-# --- 4. THE AUTOMATION FUNCTION ---
+# --- 4. THE AUTOMATION FUNCTION (Fixed Spam & Link) ---
 def run_daily_automation(word, sentence, quote):
     st.sidebar.header("⏱️ Status")
     st.sidebar.write(f"Local Time: {be_now.strftime('%H:%M')}")
     
+    # Unique ID for this specific hour
     today_stamp = f"{be_now.date()}-{current_hour}"
     url = f"https://api.github.com/repos/{REPO_NAME}/contents/{FILE_PATH}"
     headers = {"Authorization": f"token {GITHUB_TOKEN}"}
     
-    should_send = False
     res = safe_github_get(url, headers)
-    
     if res == "BLOCKED":
         st.sidebar.warning("📡 Network Blocked: Cannot check GitHub.")
         return
-    
+
+    existing_text = ""
+    sha = None
     if res and res.status_code == 200:
         data = res.json()
+        sha = data['sha']
         existing_text = base64.b64decode(data['content']).decode('utf-8')
-        if today_stamp not in existing_text:
-            should_send = True
-    else:
-        should_send = True 
 
-    if current_hour in [0, 10, 11, 20, 21, 22] and should_send:
+    # Guard: Check if this hour is already logged
+    already_sent = today_stamp in existing_text
+
+    if current_hour in [0, 10, 11, 20, 21, 22] and not already_sent:
         topic = "leanders_daily_bars"
-        titles = {0: "Midnight Bars", 10: "Morning Grind", 11: "You Got This", 20: "Evening Session", 21: "Closing In", 22: "Final Call"}
+        titles = {0: "Midnight Bars", 10: "Morning Grind", 11: "You Got This", 
+                  20: "Evening Session", 21: "Closing In", 22: "Final Call"}
         title = titles.get(current_hour, "Daily Update")
         full_msg = f"WORD: {word.upper()}\n\n{sentence}\n\nMotivation: {quote}"
 
         try:
+            # A. Send to Ntfy (Link fixed to direct URL)
             requests.post(
                 f"https://ntfy.sh/{topic}", 
                 data=full_msg.encode('utf-8'), 
                 headers={
-                    "Title": title, 
+                    "Title": title.encode('utf-8'), 
                     "Priority": "high",
-                    "Click": "https://daily-rap-history.streamlit.app/",
+                    "Click": "https://daily-rap-history.streamlit.app",
                     "Tags": "writing_hand,microphone"
                 }
             )
+            
+            # B. Save to GitHub so it doesn't repeat
+            new_content = existing_text + f"\nSENT: {today_stamp}"
+            encoded = base64.b64encode(new_content.encode('utf-8')).decode('utf-8')
+            update_payload = {"message": f"Log {today_stamp}", "content": encoded}
+            if sha: update_payload["sha"] = sha
+            
+            requests.put(url, json=update_payload, headers=headers)
             st.sidebar.success(f"Notification Sent: {title}")
+            time.sleep(1)
+            st.rerun()
+            
         except Exception as e:
             st.sidebar.error(f"Ntfy Error: {e}")
+    elif already_sent:
+        st.sidebar.info(f"✅ Already sent for {current_hour}:00")
     else:
-        st.sidebar.info("Standing by for next drop...")
-
+        st.sidebar.info("📌 Waiting for scheduled hour...")
 # --- 5. DATA BANK (KEEP YOUR LISTS BELOW) ---
 words = [
     {"word": "Obsession", "rhymes": "Possession, Progression, Lesson"}, {"word": "Titanium", "rhymes": "Cranium, Uranium, Stadium"},
@@ -643,70 +652,64 @@ motivation = [
     "Success is the final destination on your journey of excellence."
 ]
 
+# --- 5. CONTENT DATA ---
+words = [
+    {"word": "Resilience", "rhymes": "Brilliance, Millions, Millions"},
+    {"word": "Starlight", "rhymes": "Far sight, Hard fight, Bar fight"},
+    {"word": "Empire", "rhymes": "Vampire, Campfire, Entire"}
+] # Add your full word list here
+
+sentences = ["Focus on the climb, the view is coming.", "Write like the rent is due tomorrow."]
+motivation = ["'Success is not final, failure is not fatal.'", "'The only way out is through.'"]
+
 # --- 6. EXECUTION ---
-# Pick today's data using the current Day of the Year
 daily_word = words[day_of_year % len(words)]
 daily_sentence = sentences[day_of_year % len(sentences)]
 daily_quote = motivation[day_of_year % len(motivation)]
 
-# Trigger the automation check
+# Run logic check
 run_daily_automation(daily_word['word'], daily_sentence, daily_quote)
 
-# --- 7. THE UI (FRONT END) ---
+# --- 7. THE UI ---
 st.title("🎤 LEANDER'S DAILY BARS")
 
-def clean_text_safe(text):
+def clean_text(text):
     if not text: return ""
-    text = text.split("---")[0].split("LOG:")[0]
-    return text.replace("WORD:", "").replace("Motivation:", "").strip()
+    return text.split("---")[0].replace("WORD:", "").strip()
 
-display_sentence = clean_text_safe(daily_sentence)
-display_quote = clean_text_safe(daily_quote)
-display_word = daily_word['word'] if isinstance(daily_word, dict) else daily_word
-
-st.header(str(display_word).upper())
-
-if isinstance(daily_word, dict) and 'rhymes' in daily_word:
-    st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
-
+st.header(str(daily_word['word']).upper())
+st.markdown(f"**Rhymes:** {daily_word['rhymes']}")
 st.divider()
-st.info(f"📝 {display_sentence}")
-st.warning(f"🔥 {display_quote}")
+st.info(f"📝 {clean_text(daily_sentence)}")
+st.warning(f"🔥 {clean_text(daily_quote)}")
 
-# --- 8. THE CONNECTION CENTER ---
-st.sidebar.title("🔗 Connections")
+# --- 8. CONNECTIONS & STATUS ---
+st.sidebar.divider()
 st.sidebar.markdown("[➡️ Open Rap Journal](https://daily-rap-history.streamlit.app)")
 
-def check_journal_done(date_to_check):
+def check_journal_done(date_str):
     JOURNAL_REPO = "Leanderschepers-star/daily-rap-history"
     url = f"https://api.github.com/repos/{JOURNAL_REPO}/contents/history.txt"
     headers = {"Authorization": f"token {GITHUB_TOKEN}"}
-    
     res = safe_github_get(url, headers)
-    if res == "BLOCKED": return "📡 Network Blocked"
-    if res and res.status_code == 200:
+    if res != "BLOCKED" and res and res.status_code == 200:
         content = base64.b64decode(res.json()['content']).decode('utf-8')
-        if f"DATE: {date_to_check}" in content:
-            return "✅ Done"
-    return "❌ Pending"
+        return "✅ Done" if f"DATE: {date_str}" in content else "❌ Pending"
+    return "📡 Status Unknown"
 
 status = check_journal_done(be_now.strftime('%d/%m/%Y'))
 st.sidebar.metric("Journal Status", status)
 
-st.sidebar.divider()
 if st.sidebar.button("🚀 Force Test Notification"):
-    try:
-        topic = "leanders_daily_bars"
-        test_msg = f"TEST RUN\nWORD: {display_word.upper()}\nPrompt: {display_sentence}"
-        requests.post(f"https://ntfy.sh/{topic}", data=test_msg.encode('utf-8'), headers={"Title": "Manual Trigger", "Priority": "high", "Tags": "rocket"})
-        st.sidebar.success("Test Sent!")
-    except Exception as e:
-        st.sidebar.error(f"Test failed: {e}")
+    topic = "leanders_daily_bars"
+    requests.post(f"https://ntfy.sh/{topic}", data="Manual Test".encode('utf-8'), 
+                  headers={"Title": "Manual Trigger", "Priority": "high", "Click": "https://daily-rap-history.streamlit.app"})
+    st.sidebar.success("Test Sent!")
 
-st.sidebar.caption("v1.6 | Firewall-Safe Logic")
+st.sidebar.caption("v1.7 | Anti-Spam Logic Enabled")
 
-# --- 9. ONE-LINE OUTPUT FOR KWGT ---
+# --- 9. KWGT OUTPUT ---
 st.divider()
 st.write("KWGT_DATA_START")
-st.code(f"{display_word} | {display_sentence} | {display_quote}")
+st.code(f"{daily_word['word']} | {daily_sentence} | {daily_quote}")
 st.write("KWGT_DATA_END")
