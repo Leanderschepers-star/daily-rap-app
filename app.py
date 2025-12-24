@@ -10,8 +10,9 @@ except:
 
 REPO_NAME = "Leanderschepers-star/daily-rap-app"
 FILE_PATH = "daily_bars.txt"
+JOURNAL_URL = "https://daily-rap-history-zk8ax9vc2qssc5phovsmpn.streamlit.app"
 
-# --- 2. TIME & DATA SETUP ---
+# --- 2. TIME SETUP ---
 belgium_tz = pytz.timezone('Europe/Brussels')
 be_now = datetime.datetime.now(belgium_tz)
 current_hour = be_now.hour
@@ -27,12 +28,11 @@ def safe_github_get(url, headers):
     except:
         return None
 
-# --- 4. THE AUTOMATION FUNCTION (Fixed Spam & Link) ---
+# --- 4. THE AUTOMATION FUNCTION ---
 def run_daily_automation(word, sentence, quote):
     st.sidebar.header("⏱️ Status")
     st.sidebar.write(f"Local Time: {be_now.strftime('%H:%M')}")
     
-    # Unique ID for this specific hour
     today_stamp = f"{be_now.date()}-{current_hour}"
     url = f"https://api.github.com/repos/{REPO_NAME}/contents/{FILE_PATH}"
     headers = {"Authorization": f"token {GITHUB_TOKEN}"}
@@ -49,7 +49,7 @@ def run_daily_automation(word, sentence, quote):
         sha = data['sha']
         existing_text = base64.b64decode(data['content']).decode('utf-8')
 
-    # Guard: Check if this hour is already logged
+    # Guard against spam
     already_sent = today_stamp in existing_text
 
     if current_hour in [0, 10, 11, 20, 21, 22] and not already_sent:
@@ -60,19 +60,19 @@ def run_daily_automation(word, sentence, quote):
         full_msg = f"WORD: {word.upper()}\n\n{sentence}\n\nMotivation: {quote}"
 
         try:
-            # A. Send to Ntfy (Link fixed to direct URL)
+            # SEND NTFY WITH JOURNAL LINK
             requests.post(
                 f"https://ntfy.sh/{topic}", 
                 data=full_msg.encode('utf-8'), 
                 headers={
                     "Title": title.encode('utf-8'), 
                     "Priority": "high",
-                    "Click": "https://daily-rap-history.streamlit.app",
+                    "Click": JOURNAL_URL,  # <--- YOUR JOURNAL LINK
                     "Tags": "writing_hand,microphone"
                 }
             )
             
-            # B. Save to GitHub so it doesn't repeat
+            # LOG TO GITHUB TO STOP REPEATS
             new_content = existing_text + f"\nSENT: {today_stamp}"
             encoded = base64.b64encode(new_content.encode('utf-8')).decode('utf-8')
             update_payload = {"message": f"Log {today_stamp}", "content": encoded}
@@ -651,23 +651,11 @@ motivation = [
     "Your potential is waiting for you to unleash it.", "Keep working hard and stay true to your vision.",
     "Success is the final destination on your journey of excellence."
 ]
-
-# --- 5. CONTENT DATA ---
-words = [
-    {"word": "Resilience", "rhymes": "Brilliance, Millions, Millions"},
-    {"word": "Starlight", "rhymes": "Far sight, Hard fight, Bar fight"},
-    {"word": "Empire", "rhymes": "Vampire, Campfire, Entire"}
-] # Add your full word list here
-
-sentences = ["Focus on the climb, the view is coming.", "Write like the rent is due tomorrow."]
-motivation = ["'Success is not final, failure is not fatal.'", "'The only way out is through.'"]
-
 # --- 6. EXECUTION ---
 daily_word = words[day_of_year % len(words)]
 daily_sentence = sentences[day_of_year % len(sentences)]
 daily_quote = motivation[day_of_year % len(motivation)]
 
-# Run logic check
 run_daily_automation(daily_word['word'], daily_sentence, daily_quote)
 
 # --- 7. THE UI ---
@@ -683,9 +671,9 @@ st.divider()
 st.info(f"📝 {clean_text(daily_sentence)}")
 st.warning(f"🔥 {clean_text(daily_quote)}")
 
-# --- 8. CONNECTIONS & STATUS ---
+# --- 8. CONNECTIONS ---
 st.sidebar.divider()
-st.sidebar.markdown("[➡️ Open Rap Journal](https://daily-rap-history.streamlit.app)")
+st.sidebar.markdown(f"[➡️ Open Rap Journal]({JOURNAL_URL})")
 
 def check_journal_done(date_str):
     JOURNAL_REPO = "Leanderschepers-star/daily-rap-history"
@@ -703,10 +691,10 @@ st.sidebar.metric("Journal Status", status)
 if st.sidebar.button("🚀 Force Test Notification"):
     topic = "leanders_daily_bars"
     requests.post(f"https://ntfy.sh/{topic}", data="Manual Test".encode('utf-8'), 
-                  headers={"Title": "Manual Trigger", "Priority": "high", "Click": "https://daily-rap-history.streamlit.app"})
+                  headers={"Title": "Manual Trigger", "Priority": "high", "Click": JOURNAL_URL})
     st.sidebar.success("Test Sent!")
 
-st.sidebar.caption("v1.7 | Anti-Spam Logic Enabled")
+st.sidebar.caption("v1.8 | Linked to History App")
 
 # --- 9. KWGT OUTPUT ---
 st.divider()
